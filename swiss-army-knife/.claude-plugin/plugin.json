@@ -1,10 +1,10 @@
 {
   "name": "swiss-army-knife",
-  "version": "0.2.1",
-  "description": "Standardized frontend bugfix workflow plugin with 6-phase process: error analysis, root cause diagnosis, solution design, TDD execution, quality verification, and knowledge extraction",
+  "version": "0.3.0",
+  "description": "Multi-stack bugfix workflow plugin supporting frontend, backend, and e2e with 6-phase process",
   "author": {
     "name": "penkzhou"
   },
   "license": "MIT",
-  "keywords": ["frontend", "bugfix", "testing", "TDD", "react", "typescript", "workflow"]
+  "keywords": ["bugfix", "testing", "TDD", "frontend", "backend", "e2e", "workflow", "multi-stack"]
 }
