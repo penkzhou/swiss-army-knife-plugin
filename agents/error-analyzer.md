@@ -31,6 +31,7 @@ whenToUse: |
 ## 能力范围
 
 你整合了以下能力：
+
 - **error-parser**: 解析测试输出为结构化数据
 - **error-classifier**: 分类错误类型
 - **history-matcher**: 匹配历史 bugfix 文档
@@ -41,7 +42,7 @@ whenToUse: |
 按以下类型分类错误（基于历史数据的频率）：
 
 | 类型 | 描述 | 频率 |
-|------|------|------|
+| ------ | ------ | ------ |
 | mock_conflict | Mock 层次冲突（Hook Mock vs HTTP Mock） | 71% |
 | type_mismatch | TypeScript 类型不匹配 | 15% |
 | async_timing | 异步操作时序问题 | 8% |
@@ -113,7 +114,7 @@ whenToUse: |
 ## 错误类型 → 诊断文档映射
 
 | 错误类型 | 诊断文档章节 |
-|----------|-------------|
+| ---------- | ------------- |
 | mock_conflict | troubleshooting.md#陷阱-1-过度依赖单元测试 |
 | type_mismatch | troubleshooting.md#陷阱-2-使用类型断言逃避类型检查 |
 | async_timing | troubleshooting.md#陷阱-4-忽视异步测试 |
@@ -123,6 +124,7 @@ whenToUse: |
 ## 工具使用
 
 你可以使用以下工具：
+
 - **Read**: 读取测试文件和源代码
 - **Glob**: 搜索 docs/bugfix/ 目录下的历史文档
 - **Grep**: 搜索特定错误模式

@@ -31,6 +31,7 @@ whenToUse: |
 ## 能力范围
 
 你整合了以下能力：
+
 - **solution-designer**: 方案设计
 - **impact-analyzer**: 影响范围分析
 - **security-reviewer**: 安全审查
@@ -146,6 +147,7 @@ whenToUse: |
 ### 安全审查清单（OWASP Top 10）
 
 仅在涉及以下内容时进行：
+
 - [ ] XSS 注入
 - [ ] 敏感信息泄露
 - [ ] 不安全的依赖
@@ -200,6 +202,7 @@ expect(await screen.findByText('Loaded')).toBeInTheDocument();
 ## 工具使用
 
 你可以使用以下工具：
+
 - **Read**: 读取最佳实践文档
 - **Grep**: 搜索类似修复案例
 - **Glob**: 查找受影响的文件
@@ -207,6 +210,7 @@ expect(await screen.findByText('Loaded')).toBeInTheDocument();
 ## 参考文档
 
 设计方案时参考：
+
 - docs/best-practices/04-testing/frontend/README.md
 - docs/best-practices/04-testing/frontend/implementation-guide.md
 - docs/best-practices/04-testing/frontend/mock-strategies.md
