@@ -1,6 +1,6 @@
 # Swiss Army Knife Plugin
 
-Standardized frontend bugfix workflow plugin with 6-phase process: error analysis, root cause diagnosis, solution design, TDD execution, quality verification, and knowledge extraction.
+Standardized bugfix workflow plugin with multi-stack support (frontend, backend, e2e) featuring a 6-phase process: error analysis, root cause diagnosis, solution design, TDD execution, quality verification, and knowledge extraction.
 
 ## Installation
 
@@ -16,13 +16,47 @@ Standardized frontend bugfix workflow plugin with 6-phase process: error analysi
 /plugin install swiss-army-knife-plugin@local-marketplace
 ```
 
+## 配置
+
+### 默认配置
+
+插件提供开箱即用的默认配置，位于 `config/defaults.yaml`。
+
+### 项目级覆盖
+
+在项目根目录创建 `.claude/swiss-army-knife.yaml` 可覆盖默认配置：
+
+```yaml
+# .claude/swiss-army-knife.yaml
+stacks:
+  frontend:
+    test_command: "pnpm test:unit"  # 覆盖测试命令
+    docs:
+      best_practices_dir: "documentation/testing"  # 自定义文档路径
+```
+
+### 配置项说明
+
+| 配置项 | 说明 | 默认值 |
+|--------|------|--------|
+| `test_command` | 测试运行命令 | `make test TARGET={stack}` |
+| `lint_command` | Lint 检查命令 | `make lint TARGET={stack}` |
+| `docs.bugfix_dir` | Bugfix 文档目录 | `docs/bugfix` |
+| `docs.best_practices_dir` | 最佳实践目录 | `docs/best-practices` |
+| `docs.search_keywords` | 文档搜索关键词 | 见 defaults.yaml |
+
 ## Components
 
-### Commands
+## 命令
 
-| Command | Description |
-| --------- | ------------- |
-| `/swiss-army-knife-plugin:fix` | 执行标准化前端 Bugfix 工作流（六阶段流程） |
+| 命令 | 说明 | 状态 |
+|------|------|------|
+| `/fix-frontend` | Frontend bugfix 工作流 | ✅ 完整 |
+| `/fix-backend` | Backend bugfix 工作流 | 🔧 占位 |
+| `/fix-e2e` | E2E bugfix 工作流 | 🔧 占位 |
+| `/release` | 发布流程 | ✅ 完整 |
+
+### Commands (Legacy)
 
 ### Agents
 
