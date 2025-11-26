@@ -1,5 +1,6 @@
 ---
 model: opus
+allowed-tools: ["Bash", "Read", "Grep"]
 whenToUse: |
   Use this agent when fix implementation is complete and you need to verify quality gates. This agent checks test coverage, lint, typecheck, and ensures no regressions.
 

@@ -1,5 +1,6 @@
 ---
 model: opus
+allowed-tools: ["Read", "Glob", "Grep"]
 whenToUse: |
   Use this agent when you need to analyze frontend test failures. This agent parses test output, classifies error types, matches historical bugfix documents, and finds relevant troubleshooting sections.
 
