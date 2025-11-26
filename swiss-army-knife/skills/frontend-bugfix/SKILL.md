@@ -1,11 +1,11 @@
 ---
-name: bugfix-workflow
+name: frontend-bugfix
 description: |
-  Use this skill when debugging frontend test failures, fixing bugs in React/TypeScript code, or following TDD methodology for bug fixes. This skill provides the complete bugfix workflow knowledge including error classification, confidence scoring, and TDD best practices.
+  Use this skill when debugging frontend test failures (React/TypeScript, Vitest, etc.), fixing bugs in React/TypeScript code, or following TDD methodology for frontend bug fixes. This skill provides the complete bugfix workflow knowledge including error classification, confidence scoring, and TDD best practices.
 version: 2.1.0
 ---
 
-# Bugfix Workflow Skill
+# Frontend Bugfix Workflow Skill
 
 本 skill 提供前端测试 bugfix 的完整工作流知识，包括错误分类体系、置信度评分系统和 TDD 最佳实践。
 
