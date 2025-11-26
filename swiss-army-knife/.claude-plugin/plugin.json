@@ -1,5 +1,5 @@
 {
-  "name": "swiss-army-knife-plugin",
+  "name": "swiss-army-knife",
   "version": "0.2.1",
   "description": "Standardized frontend bugfix workflow plugin with 6-phase process: error analysis, root cause diagnosis, solution design, TDD execution, quality verification, and knowledge extraction",
   "author": {

@@ -45,16 +45,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### 测试变更
 
 ```bash
-# 创建测试 marketplace 目录结构
-mkdir -p test-marketplace/.claude-plugin
-# 添加 marketplace.json 指向此插件
-# 然后在 Claude Code 中：
-/plugin marketplace add /path/to/test-marketplace
-/plugin install swiss-army-knife-plugin@test-marketplace
+# 此仓库已经是 marketplace 结构，直接添加即可：
+/plugin marketplace add /path/to/swiss-army-knife-plugin
+/plugin install swiss-army-knife@swiss-army-knife-plugin
 
 # 修改后重新安装：
-/plugin uninstall swiss-army-knife-plugin@test-marketplace
-/plugin install swiss-army-knife-plugin@test-marketplace
+/plugin uninstall swiss-army-knife@swiss-army-knife-plugin
+/plugin install swiss-army-knife@swiss-army-knife-plugin
 ```
 
 ### 添加组件

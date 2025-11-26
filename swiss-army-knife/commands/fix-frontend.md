@@ -1,5 +1,5 @@
 ---
-description: 执行标准化前端 Bugfix 工作流（六阶段流程）
+description: 执行标准化 Frontend Bugfix 工作流（六阶段流程）
 argument-hint: "[--phase=0,1,2,3,4,5|all] [--dry-run]"
 allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWrite", "AskUserQuestion"]
 ---
@@ -21,6 +21,29 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 
 ---
 
+## 配置加载
+
+### 加载步骤
+
+1. 读取插件默认配置: `${PLUGIN_ROOT}/config/defaults.yaml`
+2. 检查项目配置: `.claude/swiss-army-knife.yaml`
+3. 如存在项目配置，深度合并覆盖默认值
+4. 提取 `stacks.frontend` 配置用于后续流程
+
+### 配置变量
+
+以下变量将注入到各 Agent prompt 中：
+
+- `${config.test_command}` - 测试命令
+- `${config.lint_command}` - Lint 命令
+- `${config.typecheck_command}` - 类型检查命令
+- `${config.docs.bugfix_dir}` - Bugfix 文档目录
+- `${config.docs.best_practices_dir}` - 最佳实践目录
+- `${config.docs.search_keywords}` - 文档搜索关键词
+- `${config.error_patterns}` - 错误模式定义
+
+---
+
 ## Phase 0: 问题收集与分类
 
 ### 0.1 获取测试失败输出
@@ -28,7 +51,7 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 如果用户没有提供测试输出，运行测试获取：
 
 ```bash
-make test TARGET=frontend 2>&1 | head -200
+${config.test_command} 2>&1 | head -200
 ```
 
 ### 0.2 启动 error-analyzer agent
@@ -36,7 +59,7 @@ make test TARGET=frontend 2>&1 | head -200
 使用 Task tool 启动 error-analyzer agent 解析测试输出：
 
 ```yaml
-subagent_type: "swiss-army-knife-plugin:error-analyzer"
+subagent_type: "swiss-army-knife:frontend-error-analyzer"
 prompt: |
   分析以下测试失败输出，完成错误解析、分类、历史匹配和文档匹配。
 
@@ -44,8 +67,8 @@ prompt: |
   [粘贴测试输出]
 
   ## 项目路径
-  - bugfix 文档: docs/bugfix/
-  - troubleshooting: docs/best-practices/04-testing/frontend/troubleshooting.md
+  - bugfix 文档: ${config.docs.bugfix_dir}
+  - troubleshooting: ${config.docs.best_practices_dir}/troubleshooting.md
 ```
 
 ### 0.3 记录到 TodoWrite
@@ -66,7 +89,7 @@ prompt: |
 使用 Task tool 启动 root-cause agent 进行根因分析：
 
 ```yaml
-subagent_type: "swiss-army-knife-plugin:root-cause"
+subagent_type: "swiss-army-knife:frontend-root-cause"
 prompt: |
   基于以下信息进行根因分析：
 
@@ -99,7 +122,7 @@ prompt: |
 使用 Task tool 启动 solution agent 设计修复方案：
 
 ```yaml
-subagent_type: "swiss-army-knife-plugin:solution"
+subagent_type: "swiss-army-knife:frontend-solution"
 prompt: |
   基于以下根因分析设计修复方案：
 
@@ -107,8 +130,8 @@ prompt: |
   [Phase 1 的输出]
 
   ## 参考最佳实践
-  - docs/best-practices/04-testing/frontend/README.md
-  - docs/best-practices/04-testing/frontend/implementation-guide.md
+  - ${config.docs.best_practices_dir}/README.md
+  - ${config.docs.best_practices_dir}/implementation-guide.md
 ```
 
 ### 2.2 安全审查
@@ -128,7 +151,7 @@ prompt: |
 如果不是 `--dry-run` 模式，使用 Write tool 创建文档：
 
 ```text
-文件路径: docs/bugfix/{YYYY-MM-DD}-{issue-slug}.md
+文件路径: ${config.docs.bugfix_dir}/{YYYY-MM-DD}-{issue-slug}.md
 ```
 
 文档模板：
@@ -189,7 +212,7 @@ prompt: |
 ### 3.2 等待用户确认
 
 **询问用户**：
-> "Bugfix 方案已生成，请查看 docs/bugfix/{date}-{issue}.md。
+> "Bugfix 方案已生成，请查看 ${config.docs.bugfix_dir}/{date}-{issue}.md。
 > 确认后开始实施，或提出调整意见。"
 
 如果是 `--dry-run` 模式，到此结束。
@@ -203,7 +226,7 @@ prompt: |
 使用 Task tool 启动 executor agent 执行 TDD 修复：
 
 ```yaml
-subagent_type: "swiss-army-knife-plugin:executor"
+subagent_type: "swiss-army-knife:frontend-executor"
 prompt: |
   执行 TDD 修复流程：
 
@@ -219,9 +242,9 @@ prompt: |
 
 ## 验证命令
 
-- make test TARGET=frontend FILTER={test_file}
-- make lint TARGET=frontend
-- make typecheck TARGET=frontend
+- ${config.test_command} FILTER={test_file}
+- ${config.lint_command}
+- ${config.typecheck_command}
 
 ```
 
@@ -238,7 +261,7 @@ prompt: |
 使用 Task tool 启动 quality-gate agent 检查质量门禁：
 
 ```yaml
-subagent_type: "swiss-army-knife-plugin:quality-gate"
+subagent_type: "swiss-army-knife:frontend-quality-gate"
 prompt: |
   执行质量门禁检查：
 
@@ -260,7 +283,7 @@ prompt: |
 如果质量门禁通过，启动 knowledge agent 进行知识沉淀：
 
 ```yaml
-subagent_type: "swiss-army-knife-plugin:knowledge"
+subagent_type: "swiss-army-knife:frontend-knowledge"
 prompt: |
   基于以下修复过程，提取可沉淀的知识：
 
@@ -270,8 +293,8 @@ prompt: |
 
 ## 现有文档
 
-- docs/bugfix/
-- docs/best-practices/04-testing/frontend/
+- ${config.docs.bugfix_dir}
+- ${config.docs.best_practices_dir}
 
 ## 判断标准
 
