@@ -1,5 +1,6 @@
 ---
 model: opus
+allowed-tools: ["Read", "Glob", "Grep"]
 whenToUse: |
   Use this agent when you have parsed test errors and need to perform root cause analysis. This agent analyzes the underlying cause of test failures and provides confidence-scored assessments.
 

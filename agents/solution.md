@@ -1,5 +1,6 @@
 ---
 model: opus
+allowed-tools: ["Read", "Glob", "Grep"]
 whenToUse: |
   Use this agent when root cause analysis is complete and you need to design a fix solution. This agent creates comprehensive fix plans including TDD strategy, impact analysis, and security review.
 

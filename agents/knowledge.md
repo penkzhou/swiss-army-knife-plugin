@@ -1,5 +1,6 @@
 ---
 model: opus
+allowed-tools: ["Read", "Write", "Edit", "Glob"]
 whenToUse: |
   Use this agent when bugfix is complete and quality gates have passed. This agent extracts learnings from the fix process and updates documentation.
 

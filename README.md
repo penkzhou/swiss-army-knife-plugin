@@ -1,15 +1,19 @@
 # Swiss Army Knife Plugin
 
-A personal collection of useful Claude Code components for daily development.
+Standardized frontend bugfix workflow plugin with 6-phase process: error analysis, root cause diagnosis, solution design, TDD execution, quality verification, and knowledge extraction.
 
 ## Installation
 
 ```bash
-# Add to Claude Code plugins
-claude plugins add /path/to/swiss-army-knife-plugin
+# First, add the plugin marketplace (if not already added)
+/plugin marketplace add /path/to/marketplace
 
-# Or link for development
-claude plugins link /path/to/swiss-army-knife-plugin
+# Then install the plugin
+/plugin install swiss-army-knife-plugin@marketplace-name
+
+# Or for local development, add a local marketplace containing this plugin
+/plugin marketplace add /path/to/local-marketplace
+/plugin install swiss-army-knife-plugin@local-marketplace
 ```
 
 ## Components
@@ -97,9 +101,8 @@ swiss-army-knife-plugin/
 ├── skills/               # Auto-activated skills
 │   └── bugfix-workflow/
 │       └── SKILL.md
-├── hooks/                # Event handlers
-│   └── hooks.json
-└── scripts/              # Shared utilities
+└── hooks/                # Event handlers
+    └── hooks.json
 ```
 
 ## Development
