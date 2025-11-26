@@ -6,14 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-这是一个 Claude Code 插件，实现了针对 React/TypeScript 项目的标准化 6 阶段前端 bugfix 工作流。工作流通过主命令 `/fix` 协调各个专业化 agent。
+这是一个 Claude Code 插件，实现了标准化的 6 阶段 bugfix 工作流，支持多技术栈（前端、后端、端到端）。工作流通过专门的命令（`/fix-frontend`、`/fix-backend`、`/fix-e2e`）协调各个专业化 agent。
 
 ## 架构
 
 ### 工作流流程
 
 ```text
-/fix 命令 → Phase 0-5 协调
+/fix-frontend / /fix-backend / /fix-e2e 命令 → Phase 0-5 协调
      │
      ├─ Phase 0: error-analyzer agent → 解析和分类错误
      ├─ Phase 1: root-cause agent → 带置信度评分的诊断分析
@@ -23,12 +23,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
      └─ Phase 5: quality-gate + knowledge agents → 验证和知识沉淀
 ```
 
+### 组件结构
+
+插件采用多技术栈架构：
+
+- **Commands**：`commands/fix-frontend.md`、`commands/fix-backend.md`、`commands/fix-e2e.md` - 按技术栈分离的协调器
+- **Agents**：按技术栈组织
+  - `agents/frontend/`：前端专用 agents（error-analyzer、root-cause、solution、executor、quality-gate、knowledge）
+  - `agents/backend/`：后端专用 agents
+  - `agents/e2e/`：端到端测试专用 agents
+- **Skills**：`skills/bugfix-workflow/SKILL.md` - 通用知识库，包含错误模式和 TDD 实践
+- **Configuration**：`.claude/swiss-army-knife.yaml` - 项目级配置，自定义命令和路径
+- **Hooks**：`hooks/hooks.json` - 在测试失败或代码变更时触发建议
+
 ### 组件职责
 
-- **`commands/fix.md`**：主协调器 - 解析参数，通过 Task 工具分发 agent，处理决策点
-- **`agents/*.md`**：专业化子 agent，具有特定的工具权限和输出格式（JSON）
-- **`skills/bugfix-workflow/SKILL.md`**：自动激活的知识库，包含错误模式和 TDD 实践
-- **`hooks/hooks.json`**：在测试失败或前端代码变更时触发建议
+- **Commands**：主协调器 - 解析参数，通过 Task 工具分发对应技术栈的 agent，处理决策点
+- **Agents**：专业化子 agent，具有特定的工具权限和输出格式（JSON），按技术栈组织
+- **Skills**：自动激活的知识库，包含通用错误模式和 TDD 实践
+- **Configuration**：支持自定义测试命令、文档路径和最佳实践搜索关键词
 
 ### 置信度驱动的流程控制
 
@@ -56,10 +69,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 添加组件
 
-- **Commands**：在 `commands/` 添加 `.md` 文件，包含 YAML frontmatter（`description`、`argument-hint`、`allowed-tools`）
-- **Agents**：在 `agents/` 添加 `.md` 文件，包含 frontmatter（`model`、`allowed-tools`、`whenToUse` 带示例）
+- **Commands**：在 `commands/` 添加 `.md` 文件（如 `fix-{stack}.md`），包含 YAML frontmatter（`description`、`argument-hint`、`allowed-tools`）
+- **Agents**：在对应技术栈目录（`agents/frontend/`、`agents/backend/`、`agents/e2e/`）添加 `.md` 文件，包含 frontmatter（`model`、`allowed-tools`、`whenToUse` 带示例）
 - **Skills**：创建 `skills/{name}/SKILL.md`，包含 frontmatter（`name`、`description`、`version`）
 - **Hooks**：在 `hooks/hooks.json` 添加条目（`event`、`matcher`、`config`）
+- **Configuration**：在目标项目的 `.claude/swiss-army-knife.yaml` 中配置技术栈特定的命令和路径
 
 ### 关键 Frontmatter 字段
 
@@ -98,9 +112,20 @@ allowed-tools: ["Read", "Write", "Task"]
 
 ### 目标项目假设
 
-工作流假设目标项目使用：
+工作流通过配置支持多种项目结构：
 
-- `make test TARGET=frontend` 运行测试
-- `make lint TARGET=frontend` / `make typecheck TARGET=frontend` 进行 QA
-- `docs/bugfix/` 存储 bugfix 报告
-- `docs/best-practices/04-testing/frontend/` 存储参考文档
+- 默认使用 `make test TARGET={stack}` 运行测试
+- 可通过 `.claude/swiss-army-knife.yaml` 自定义命令和路径
+- 文档路径支持关键词搜索，无需硬编码
+
+**默认配置示例：**
+
+```yaml
+stacks:
+  frontend:
+    testCommand: "make test TARGET=frontend"
+    lintCommand: "make lint TARGET=frontend"
+    typecheckCommand: "make typecheck TARGET=frontend"
+    bugfixDocsPath: "docs/bugfix/"
+    bestPracticesKeywords: ["frontend", "testing", "react"]
+```
