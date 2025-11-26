@@ -1,5 +1,6 @@
 ---
 model: opus
+allowed-tools: ["Read", "Write", "Edit", "Bash"]
 whenToUse: |
   Use this agent when a fix solution has been designed and approved, and you need to execute the TDD implementation. This agent handles RED-GREEN-REFACTOR execution with incremental verification.
 
