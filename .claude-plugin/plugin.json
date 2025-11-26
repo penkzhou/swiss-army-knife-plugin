@@ -1,6 +1,6 @@
 {
   "name": "swiss-army-knife-plugin",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Standardized frontend bugfix workflow plugin with 6-phase process: error analysis, root cause diagnosis, solution design, TDD execution, quality verification, and knowledge extraction",
   "author": {
     "name": "penkzhou"
