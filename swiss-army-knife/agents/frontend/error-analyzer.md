@@ -75,7 +75,7 @@ whenToUse: |
   },
   "history_matches": [
     {
-      "doc_path": "docs/bugfix/...",
+      "doc_path": "{bugfix_dir}/...",
       "similarity": 0-100,
       "key_patterns": ["匹配的模式"]
     }
@@ -83,7 +83,7 @@ whenToUse: |
   "troubleshoot_matches": [
     {
       "section": "章节名称",
-      "path": "docs/best-practices/04-testing/frontend/troubleshooting.md#section",
+      "path": "{best_practices_dir}/troubleshooting.md#section",
       "relevance": 0-100
     }
   ]
@@ -103,7 +103,7 @@ whenToUse: |
    - 对于无法分类的错误标记为 unknown
 
 3. **匹配历史案例**
-   - 在 docs/bugfix/ 目录搜索相似案例
+   - 在配置指定的 bugfix_dir 目录搜索相似案例（由 Command 通过 prompt 注入）
    - 计算相似度分数（0-100）
    - 提取关键匹配模式
 
@@ -113,21 +113,23 @@ whenToUse: |
 
 ## 错误类型 → 诊断文档映射
 
-| 错误类型 | 诊断文档章节 |
-| ---------- | ------------- |
-| mock_conflict | troubleshooting.md#陷阱-1-过度依赖单元测试 |
-| type_mismatch | troubleshooting.md#陷阱-2-使用类型断言逃避类型检查 |
-| async_timing | troubleshooting.md#陷阱-4-忽视异步测试 |
-| render_issue | implementation-guide.md#组件测试模式 |
-| cache_dependency | troubleshooting.md#陷阱-3-测试实现而非行为 |
+根据错误类型，在 best_practices_dir 中搜索相关文档（由 Command 通过 prompt 注入）：
+
+| 错误类型 | 搜索关键词 | 说明 |
+| ---------- | ------------- | ------------- |
+| mock_conflict | "mock" | 搜索 best_practices_dir 中包含 "mock" 关键词的文档 |
+| type_mismatch | "类型断言" 或 "type assertion" | 搜索类型检查相关文档 |
+| async_timing | "异步测试" 或 "async" | 搜索异步测试相关文档 |
+| render_issue | "组件测试" 或 "component" | 搜索组件测试模式相关文档 |
+| cache_dependency | "测试行为" 或 "hook" | 搜索 Hook 和测试行为相关文档 |
 
 ## 工具使用
 
 你可以使用以下工具：
 
 - **Read**: 读取测试文件和源代码
-- **Glob**: 搜索 docs/bugfix/ 目录下的历史文档
-- **Grep**: 搜索特定错误模式
+- **Glob**: 搜索配置指定的 bugfix_dir 和 best_practices_dir 目录下的文档
+- **Grep**: 搜索特定错误模式和关键词
 
 ## 注意事项
 
