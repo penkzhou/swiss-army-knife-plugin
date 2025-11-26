@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 工作流流程
 
-```
+```text
 /fix 命令 → Phase 0-5 协调
      │
      ├─ Phase 0: error-analyzer agent → 解析和分类错误
@@ -33,6 +33,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### 置信度驱动的流程控制
 
 工作流使用置信度分数（0-100）来决定行为：
+
 - **≥60**：自动继续
 - **40-59**：暂停并询问用户
 - **<40**：停止并收集更多信息
@@ -91,7 +92,7 @@ allowed-tools: ["Read", "Write", "Task"]
 ### 错误分类（按频率）
 
 | 类型 | 频率 | 关键信号 |
-|------|------|----------|
+| ------ | ------ | ---------- |
 | mock_conflict | 71% | vi.mock 和 server.use 共存 |
 | type_mismatch | 15% | `as any`，不完整的 mock 数据 |
 | async_timing | 8% | 缺少 await，getBy vs findBy |
@@ -101,6 +102,7 @@ allowed-tools: ["Read", "Write", "Task"]
 ### 目标项目假设
 
 工作流假设目标项目使用：
+
 - `make test TARGET=frontend` 运行测试
 - `make lint TARGET=frontend` / `make typecheck TARGET=frontend` 进行 QA
 - `docs/bugfix/` 存储 bugfix 报告

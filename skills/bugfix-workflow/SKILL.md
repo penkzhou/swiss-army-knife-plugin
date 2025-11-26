@@ -18,6 +18,7 @@ version: 2.1.0
 **症状**：Mock 不生效，组件行为异常
 
 **识别特征**：
+
 - 同时存在 `vi.mock` 和 `server.use`
 - Hook 返回值与预期不符
 - API 调用未被拦截
@@ -41,6 +42,7 @@ vi.mock('@/hooks/useData', () => ({
 **症状**：类型错误、Mock 数据不完整
 
 **识别特征**：
+
 - `as any` 或类型断言
 - 缺少必需字段
 - 类型定义过时
@@ -60,6 +62,7 @@ const createMockData = (overrides?: Partial<DataType>): DataType => ({
 **症状**：测试间歇性失败
 
 **识别特征**：
+
 - 缺少 `await`
 - 使用 `getBy` 而非 `findBy`
 - setTimeout 后立即断言
@@ -81,6 +84,7 @@ expect(await screen.findByText('Loaded')).toBeInTheDocument();
 **症状**：组件未按预期渲染
 
 **识别特征**：
+
 - 条件渲染不触发
 - 状态更新未反映
 - Props 传递错误
@@ -92,6 +96,7 @@ expect(await screen.findByText('Loaded')).toBeInTheDocument();
 **症状**：Hook 返回过时数据
 
 **识别特征**：
+
 - `useEffect` 依赖数组不完整
 - `useMemo`/`useCallback` 缓存问题
 - 闭包陷阱
@@ -103,7 +108,7 @@ expect(await screen.findByText('Loaded')).toBeInTheDocument();
 ### 评分标准（0-100）
 
 | 分数 | 级别 | 行为 |
-|------|------|------|
+| ------ | ------ | ------ |
 | 80+ | 高 | 自动执行 |
 | 60-79 | 中 | 标记验证后继续 |
 | 40-59 | 低 | 暂停询问用户 |
@@ -111,26 +116,30 @@ expect(await screen.findByText('Loaded')).toBeInTheDocument();
 
 ### 置信度计算
 
-```
+```text
 置信度 = 证据质量(40%) + 模式匹配(30%) + 上下文完整性(20%) + 可复现性(10%)
 ```
 
 **证据质量**：
+
 - 高：有代码行号、堆栈、可复现
 - 中：有错误信息但缺上下文
 - 低：仅有模糊描述
 
 **模式匹配**：
+
 - 高：完全匹配已知模式
 - 中：部分匹配
 - 低：未知错误类型
 
 **上下文完整性**：
+
 - 高：测试代码 + 源代码 + 配置
 - 中：只有测试或源代码
 - 低：只有错误信息
 
 **可复现性**：
+
 - 高：稳定复现
 - 中：偶发
 - 低：环境相关
@@ -173,7 +182,7 @@ it('should display error when API fails', async () => {
 ## 质量门禁
 
 | 检查项 | 标准 |
-|--------|------|
+| ---------- | ------ |
 | 测试通过率 | 100% |
 | 代码覆盖率 | >= 90% |
 | 新代码覆盖率 | 100% |

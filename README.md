@@ -21,13 +21,13 @@ Standardized frontend bugfix workflow plugin with 6-phase process: error analysi
 ### Commands
 
 | Command | Description |
-|---------|-------------|
+| --------- | ------------- |
 | `/swiss-army-knife-plugin:fix` | 执行标准化前端 Bugfix 工作流（六阶段流程） |
 
 ### Agents
 
 | Agent | Description |
-|-------|-------------|
+| ------- | ------------- |
 | `error-analyzer` | 解析测试输出，完成错误分类、历史匹配和文档匹配 |
 | `root-cause` | 深入分析测试失败的根本原因，提供置信度评分 |
 | `solution` | 设计完整的修复方案，包括 TDD 计划、影响分析和安全审查 |
@@ -38,13 +38,13 @@ Standardized frontend bugfix workflow plugin with 6-phase process: error analysi
 ### Skills
 
 | Skill | Description |
-|-------|-------------|
+| ------- | ------------- |
 | `bugfix-workflow` | 前端测试 bugfix 完整工作流知识，包括错误分类、置信度评分和 TDD 最佳实践 |
 
 ### Hooks
 
 | Event | Trigger |
-|-------|---------|
+| ------- | --------- |
 | `PostToolUse` | 前端测试失败后建议使用 bugfix 流程 |
 | `SessionStart` | 检测到前端代码变更时提示 |
 
@@ -52,7 +52,7 @@ Standardized frontend bugfix workflow plugin with 6-phase process: error analysi
 
 六阶段工作流：
 
-```
+```text
 Phase 0: 问题收集与分类 → error-analyzer
 Phase 1: 诊断分析       → root-cause
 Phase 2: 方案设计       → solution
@@ -64,7 +64,7 @@ Phase 5: 验证与沉淀     → quality-gate + knowledge
 ### 置信度评分
 
 | 分数 | 级别 | 行为 |
-|------|------|------|
+| ------ | ------ | ------ |
 | 80+ | 高 | 自动执行 |
 | 60-79 | 中 | 标记验证后继续 |
 | 40-59 | 低 | 暂停询问用户 |
@@ -85,7 +85,7 @@ Phase 5: 验证与沉淀     → quality-gate + knowledge
 
 ## Directory Structure
 
-```
+```text
 swiss-army-knife-plugin/
 ├── .claude-plugin/
 │   └── plugin.json       # Plugin manifest

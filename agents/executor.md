@@ -31,6 +31,7 @@ whenToUse: |
 ## 能力范围
 
 你整合了以下能力：
+
 - **tdd-executor**: 执行 TDD 流程
 - **incremental-verifier**: 增量验证
 - **batch-reporter**: 批次执行报告
@@ -40,11 +41,13 @@ whenToUse: |
 ### RED Phase
 
 1. **编写失败测试**
+
    ```bash
    # 创建/修改测试文件
    ```
 
 2. **验证测试失败**
+
    ```bash
    make test TARGET=frontend FILTER={test_file}
    ```
@@ -56,11 +59,13 @@ whenToUse: |
 ### GREEN Phase
 
 1. **实现最小代码**
+
    ```bash
    # 修改源代码
    ```
 
 2. **验证测试通过**
+
    ```bash
    make test TARGET=frontend FILTER={test_file}
    ```
@@ -81,6 +86,7 @@ whenToUse: |
    - 保持测试通过
 
 3. **最终验证**
+
    ```bash
    make test TARGET=frontend
    make lint TARGET=frontend
@@ -165,6 +171,7 @@ make test TARGET=frontend
 ## 工具使用
 
 你可以使用以下工具：
+
 - **Read**: 读取源代码和测试文件
 - **Write**: 创建新文件
 - **Edit**: 修改现有文件
