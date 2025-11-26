@@ -1,0 +1,68 @@
+# Multi-stack bugfix workflow 默认配置
+# 项目可通过 .claude/swiss-army-knife.yaml 覆盖
+
+stacks:
+  frontend:
+    name: "Frontend (React/TypeScript)"
+    test_command: "make test TARGET=frontend"
+    lint_command: "make lint TARGET=frontend"
+    typecheck_command: "make typecheck TARGET=frontend"
+    docs:
+      bugfix_dir: "docs/bugfix"
+      best_practices_dir: "docs/best-practices"
+      search_keywords:
+        mock: ["mock", "msw", "vi.mock", "server.use", "HttpResponse"]
+        async: ["async", "await", "findBy", "waitFor", "act"]
+        type: ["typescript", "type", "interface", "as any", "generic"]
+        render: ["render", "screen", "component", "props"]
+        hook: ["useEffect", "useMemo", "useCallback", "useState"]
+    error_patterns:
+      mock_conflict:
+        frequency: 71
+        signals: ["vi.mock", "server.use"]
+        description: "Mock 层次冲突（Hook Mock vs HTTP Mock）"
+      type_mismatch:
+        frequency: 15
+        signals: ["as any", "type error", "Property.*does not exist"]
+        description: "TypeScript 类型不匹配"
+      async_timing:
+        frequency: 8
+        signals: ["findBy", "await", "act\\("]
+        description: "异步操作时序问题"
+      render_issue:
+        frequency: 4
+        signals: ["render", "screen", "not wrapped in act"]
+        description: "组件渲染问题"
+      cache_dependency:
+        frequency: 2
+        signals: ["useEffect", "useMemo", "dependency"]
+        description: "Hook 缓存依赖问题"
+
+  backend:
+    name: "Backend (Node.js/Python)"
+    test_command: "make test TARGET=backend"
+    lint_command: "make lint TARGET=backend"
+    typecheck_command: "make typecheck TARGET=backend"
+    docs:
+      bugfix_dir: "docs/bugfix"
+      best_practices_dir: "docs/best-practices"
+      search_keywords:
+        database: ["database", "query", "ORM", "SQL", "transaction"]
+        api: ["endpoint", "request", "response", "REST", "GraphQL"]
+        auth: ["authentication", "authorization", "token", "JWT", "session"]
+        validation: ["validation", "schema", "input", "sanitize"]
+    error_patterns: {}
+
+  e2e:
+    name: "E2E (Playwright/Cypress)"
+    test_command: "make test TARGET=e2e"
+    lint_command: "make lint TARGET=e2e"
+    docs:
+      bugfix_dir: "docs/bugfix"
+      best_practices_dir: "docs/best-practices"
+      search_keywords:
+        selector: ["selector", "locator", "element", "getBy", "findBy"]
+        timing: ["timeout", "wait", "retry", "polling"]
+        network: ["intercept", "mock", "request", "route"]
+        assertion: ["expect", "assert", "toHave", "toBe"]
+    error_patterns: {}
