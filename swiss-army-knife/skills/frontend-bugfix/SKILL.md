@@ -207,7 +207,9 @@ make qa
 
 ## 相关文档
 
-- [测试最佳实践](docs/best-practices/04-testing/frontend/README.md)
-- [Mock 策略](docs/best-practices/04-testing/frontend/mock-strategies.md)
-- [问题诊断](docs/best-practices/04-testing/frontend/troubleshooting.md)
-- [实现指南](docs/best-practices/04-testing/frontend/implementation-guide.md)
+文档路径由配置指定（`best_practices_dir`），使用以下关键词搜索：
+
+- **测试最佳实践**：关键词 "testing", "best-practices"
+- **Mock 策略**：关键词 "mock", "msw", "vi.mock"
+- **问题诊断**：关键词 "troubleshooting", "debugging"
+- **实现指南**：关键词 "implementation", "guide"
