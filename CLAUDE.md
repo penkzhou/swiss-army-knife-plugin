@@ -2,96 +2,98 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
+**重要：请使用中文回答所有问题。**
 
-This is a Claude Code plugin implementing a standardized 6-phase frontend bugfix workflow for React/TypeScript projects. The workflow orchestrates specialized agents through a main `/fix` command.
+## 项目概述
 
-## Architecture
+这是一个 Claude Code 插件，实现了针对 React/TypeScript 项目的标准化 6 阶段前端 bugfix 工作流。工作流通过主命令 `/fix` 协调各个专业化 agent。
 
-### Workflow Flow
+## 架构
+
+### 工作流流程
 
 ```
-/fix command → Phase 0-5 orchestration
+/fix 命令 → Phase 0-5 协调
      │
-     ├─ Phase 0: error-analyzer agent → Parse & classify errors
-     ├─ Phase 1: root-cause agent → Diagnose with confidence scoring
-     ├─ Phase 2: solution agent → Design TDD fix plan
-     ├─ Phase 3: (main controller) → Generate bugfix docs
-     ├─ Phase 4: executor agent → TDD implementation (RED-GREEN-REFACTOR)
-     └─ Phase 5: quality-gate + knowledge agents → Verify & document
+     ├─ Phase 0: error-analyzer agent → 解析和分类错误
+     ├─ Phase 1: root-cause agent → 带置信度评分的诊断分析
+     ├─ Phase 2: solution agent → 设计 TDD 修复方案
+     ├─ Phase 3: (主控制器) → 生成 bugfix 文档
+     ├─ Phase 4: executor agent → TDD 实现 (RED-GREEN-REFACTOR)
+     └─ Phase 5: quality-gate + knowledge agents → 验证和知识沉淀
 ```
 
-### Component Roles
+### 组件职责
 
-- **`commands/fix.md`**: Main orchestrator - parses args, dispatches agents via Task tool, handles decision points
-- **`agents/*.md`**: Specialized subagents with specific tool permissions and output formats (JSON)
-- **`skills/bugfix-workflow/SKILL.md`**: Auto-activated knowledge base for error patterns and TDD practices
-- **`hooks/hooks.json`**: Trigger suggestions on test failures or frontend code changes
+- **`commands/fix.md`**：主协调器 - 解析参数，通过 Task 工具分发 agent，处理决策点
+- **`agents/*.md`**：专业化子 agent，具有特定的工具权限和输出格式（JSON）
+- **`skills/bugfix-workflow/SKILL.md`**：自动激活的知识库，包含错误模式和 TDD 实践
+- **`hooks/hooks.json`**：在测试失败或前端代码变更时触发建议
 
-### Confidence-Driven Flow Control
+### 置信度驱动的流程控制
 
-The workflow uses confidence scores (0-100) to determine behavior:
-- **≥60**: Auto-continue
-- **40-59**: Pause and ask user
-- **<40**: Stop and gather more info
+工作流使用置信度分数（0-100）来决定行为：
+- **≥60**：自动继续
+- **40-59**：暂停并询问用户
+- **<40**：停止并收集更多信息
 
-This is implemented in the root-cause agent output and evaluated in fix.md Phase 1.2.
+这在 root-cause agent 输出中实现，并在 fix.md Phase 1.2 中评估。
 
-## Plugin Development
+## 插件开发
 
-### Testing Changes
+### 测试变更
 
 ```bash
-# Create a test marketplace directory structure
+# 创建测试 marketplace 目录结构
 mkdir -p test-marketplace/.claude-plugin
-# Add marketplace.json pointing to this plugin
-# Then in Claude Code:
+# 添加 marketplace.json 指向此插件
+# 然后在 Claude Code 中：
 /plugin marketplace add /path/to/test-marketplace
 /plugin install swiss-army-knife-plugin@test-marketplace
 
-# After changes:
+# 修改后重新安装：
 /plugin uninstall swiss-army-knife-plugin@test-marketplace
 /plugin install swiss-army-knife-plugin@test-marketplace
 ```
 
-### Adding Components
+### 添加组件
 
-- **Commands**: Add `.md` file to `commands/` with YAML frontmatter (`description`, `argument-hint`, `allowed-tools`)
-- **Agents**: Add `.md` file to `agents/` with frontmatter (`model`, `allowed-tools`, `whenToUse` with examples)
-- **Skills**: Create `skills/{name}/SKILL.md` with frontmatter (`name`, `description`, `version`)
-- **Hooks**: Add entry to `hooks/hooks.json` (`event`, `matcher`, `config`)
+- **Commands**：在 `commands/` 添加 `.md` 文件，包含 YAML frontmatter（`description`、`argument-hint`、`allowed-tools`）
+- **Agents**：在 `agents/` 添加 `.md` 文件，包含 frontmatter（`model`、`allowed-tools`、`whenToUse` 带示例）
+- **Skills**：创建 `skills/{name}/SKILL.md`，包含 frontmatter（`name`、`description`、`version`）
+- **Hooks**：在 `hooks/hooks.json` 添加条目（`event`、`matcher`、`config`）
 
-### Key Frontmatter Fields
+### 关键 Frontmatter 字段
 
 ```yaml
-# For agents
-model: opus                    # Required model
-allowed-tools: ["Read", "Glob"] # Explicit tool permissions
-whenToUse: |                   # When Claude should use this agent
-  Description with <example> blocks
+# Agent 用
+model: opus                    # 所需模型
+allowed-tools: ["Read", "Glob"] # 显式工具权限
+whenToUse: |                   # Claude 何时使用此 agent
+  描述，包含 <example> 块
 
-# For commands
-description: Short description
+# Command 用
+description: 简短描述
 argument-hint: "[--flag=value]"
 allowed-tools: ["Read", "Write", "Task"]
 ```
 
-## Domain Knowledge
+## 领域知识
 
-### Error Classification (by frequency)
+### 错误分类（按频率）
 
-| Type | Frequency | Key Signal |
-|------|-----------|------------|
-| mock_conflict | 71% | vi.mock + server.use coexisting |
-| type_mismatch | 15% | `as any`, incomplete mock data |
-| async_timing | 8% | Missing await, getBy vs findBy |
-| render_issue | 4% | Conditional render, state update |
-| cache_dependency | 2% | Incomplete useEffect deps |
+| 类型 | 频率 | 关键信号 |
+|------|------|----------|
+| mock_conflict | 71% | vi.mock 和 server.use 共存 |
+| type_mismatch | 15% | `as any`，不完整的 mock 数据 |
+| async_timing | 8% | 缺少 await，getBy vs findBy |
+| render_issue | 4% | 条件渲染，状态更新 |
+| cache_dependency | 2% | 不完整的 useEffect 依赖 |
 
-### Target Project Assumptions
+### 目标项目假设
 
-The workflow assumes the target project uses:
-- `make test TARGET=frontend` for running tests
-- `make lint TARGET=frontend` / `make typecheck TARGET=frontend` for QA
-- `docs/bugfix/` for storing bugfix reports
-- `docs/best-practices/04-testing/frontend/` for reference docs
+工作流假设目标项目使用：
+- `make test TARGET=frontend` 运行测试
+- `make lint TARGET=frontend` / `make typecheck TARGET=frontend` 进行 QA
+- `docs/bugfix/` 存储 bugfix 报告
+- `docs/best-practices/04-testing/frontend/` 存储参考文档
