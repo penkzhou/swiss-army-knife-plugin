@@ -1,0 +1,10 @@
+{
+  "name": "swiss-army-knife-plugin",
+  "version": "0.1.0",
+  "description": "A collection of useful Claude Code components for daily development - commands, agents, skills, and hooks",
+  "author": {
+    "name": "penkzhou"
+  },
+  "license": "MIT",
+  "keywords": ["utility", "development", "productivity", "tools"]
+}

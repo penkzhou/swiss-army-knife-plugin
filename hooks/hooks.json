@@ -1,0 +1,4 @@
+{
+  "$comment": "Define event-driven hooks here. Available events: PreToolUse, PostToolUse, Stop, SubagentStop, SessionStart, SessionEnd, UserPromptSubmit, PreCompact, Notification",
+  "hooks": []
+}
