@@ -78,6 +78,14 @@ argument-hint: "[--flag=value]"
 allowed-tools: ["Read", "Write", "Task"]
 ```
 
+### 最佳实践参考
+
+开发 Claude Code 插件时，请参考官方文档：
+- **[Claude Code 插件文档](https://code.claude.com/docs/en/plugins)**：完整的插件开发指南，包含 API 参考、架构模式和最佳实践
+- **[Agent Skills 最佳实践](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices)**：编写高质量 skill 的指南和模式
+- **[Sub-agents 最佳实践](https://code.claude.com/docs/en/sub-agents)**：设计和协调子 agent 的指南，包含 Task 工具使用模式
+- **[Hooks 开发指南](https://code.claude.com/docs/en/hooks-guide)**：事件驱动自动化和工作流触发器的实现指南
+
 ## 领域知识
 
 ### 错误分类（按频率）
