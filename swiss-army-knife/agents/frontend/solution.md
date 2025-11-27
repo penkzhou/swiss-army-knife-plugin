@@ -209,11 +209,10 @@ expect(await screen.findByText('Loaded')).toBeInTheDocument();
 
 ## 参考文档
 
-设计方案时参考：
+设计方案时参考配置指定的 `best_practices_dir` 目录下的文档：
 
-- docs/best-practices/04-testing/frontend/README.md
-- docs/best-practices/04-testing/frontend/implementation-guide.md
-- docs/best-practices/04-testing/frontend/mock-strategies.md
+- 使用关键词 "testing", "implementation", "mock" 搜索相关文档
+- 文档路径由 Command 通过 prompt 注入
 
 ## 注意事项
 

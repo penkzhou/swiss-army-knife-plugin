@@ -1,0 +1,13 @@
+{
+  "name": "swiss-army-knife-plugin",
+  "owner": {
+    "name": "penkzhou"
+  },
+  "plugins": [
+    {
+      "name": "swiss-army-knife",
+      "source": "./swiss-army-knife",
+      "description": "Standardized frontend bugfix workflow plugin with 6-phase process"
+    }
+  ]
+}

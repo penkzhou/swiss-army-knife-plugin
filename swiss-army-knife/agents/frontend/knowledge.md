@@ -56,7 +56,7 @@ whenToUse: |
   ],
   "documentation": {
     "action": "new|update|none",
-    "target_path": "docs/bugfix/2025-MM-DD-issue-name.md",
+    "target_path": "{bugfix_dir}/YYYY-MM-DD-issue-name.md",
     "content": "文档内容",
     "reason": "文档化原因"
   },
@@ -225,9 +225,12 @@ whenToUse: |
 
 ## 文档存储位置
 
-- **Bugfix 报告**：`docs/bugfix/YYYY-MM-DD-issue-name.md`
-- **Troubleshooting**：`docs/best-practices/04-testing/frontend/troubleshooting.md`
-- **Implementation Guide**：`docs/best-practices/04-testing/frontend/implementation-guide.md`
+文档路径由配置指定（通过 Command prompt 注入）：
+
+- **Bugfix 报告**：`{bugfix_dir}/YYYY-MM-DD-issue-name.md`
+- **Best Practices**：`{best_practices_dir}/` 目录下搜索相关文档
+
+如果搜索不到相关文档，创建占位文档引导团队完善。
 
 ## 注意事项
 

@@ -40,18 +40,68 @@ jobs:
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
 
-            Please review this pull request and provide feedback on:
-            - Code quality and best practices
-            - Potential bugs or issues
-            - Performance considerations
-            - Security concerns
-            - Test coverage
+            ## Review Instructions
 
-            Use the repository's CLAUDE.md for guidance on style and conventions. Be constructive and helpful in your feedback.
+            这是一个 Claude Code 插件仓库的 PR review。请按以下步骤进行：
 
-            Use `gh pr comment` with your Bash tool to leave your review as a comment on the PR.
+            ### Step 1: 获取 PR diff 并分析变更类型
+
+            使用 `gh pr diff ${{ github.event.pull_request.number }}` 获取变更内容，然后分析涉及的文件类型：
+            - **commands/** - 斜杠命令文件
+            - **agents/** - Sub-agent 定义文件
+            - **skills/** - Skill 知识库文件
+            - **hooks/** - 事件钩子文件
+            - **plugin.json** - 插件清单文件
+            - **config/** - 配置文件
+
+            ### Step 2: 根据变更类型获取参考文档
+
+            根据 diff 涉及的文件类型，使用 WebFetch 工具获取相应的参考文档：
+
+            | 变更类型 | 参考文档 URL |
+            |---------|-------------|
+            | commands/ | https://code.claude.com/docs/en/slash-commands |
+            | agents/ | https://code.claude.com/docs/en/sub-agents |
+            | skills/ | https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices |
+            | hooks/ | https://code.claude.com/docs/en/hooks |
+            | plugin.json 或整体架构 | https://code.claude.com/docs/en/plugins |
+            | API 字段定义问题 | https://code.claude.com/docs/en/plugins-reference |
+
+            只需获取与本次变更相关的文档，不要获取所有文档。
+
+            ### Step 3: 进行 Review
+
+            基于获取的文档，review 以下方面：
+            - **规范符合性**：是否符合官方文档定义的格式和最佳实践
+            - **Frontmatter 正确性**：YAML frontmatter 字段是否正确
+            - **代码质量**：逻辑清晰、无冗余、遵循 DRY 原则
+            - **潜在问题**：可能的 bug、边界情况、错误处理
+            - **一致性**：与仓库现有代码风格保持一致
+
+            同时参考仓库的 CLAUDE.md 了解项目特定的规范和约定。
+
+            ### Step 4: 提交 Review 评论
+
+            使用 `gh pr comment ${{ github.event.pull_request.number }} --body "..."` 提交你的 review。
+
+            评论格式建议：
+            ```
+            ## 🔍 Claude Code Review
+
+            ### 变更概述
+            [简述本次 PR 的主要变更]
+
+            ### ✅ 符合规范
+            [列出符合最佳实践的地方]
+
+            ### ⚠️ 建议改进
+            [具体的改进建议，引用官方文档说明原因]
+
+            ### 📚 参考文档
+            [列出本次 review 参考的文档链接]
+            ```
 
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://docs.claude.com/en/docs/claude-code/cli-reference for available options
-          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
+          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*),WebFetch(code.claude.com:*),WebFetch(platform.claude.com:*)"'
 
