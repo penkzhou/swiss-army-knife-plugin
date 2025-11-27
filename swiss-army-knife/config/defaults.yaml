@@ -39,7 +39,7 @@ stacks:
         description: "Hook 缓存依赖问题"
 
   backend:
-    name: "Backend (Node.js/Python)"
+    name: "Backend (Python/FastAPI)"
     test_command: "make test TARGET=backend"
     lint_command: "make lint TARGET=backend"
     typecheck_command: "make typecheck TARGET=backend"
@@ -47,11 +47,36 @@ stacks:
       bugfix_dir: "docs/bugfix"
       best_practices_dir: "docs/best-practices"
       search_keywords:
-        database: ["database", "query", "ORM", "SQL", "transaction"]
-        api: ["endpoint", "request", "response", "REST", "GraphQL"]
+        database: ["database", "query", "ORM", "SQL", "transaction", "SQLAlchemy"]
+        api: ["endpoint", "request", "response", "REST", "GraphQL", "FastAPI"]
         auth: ["authentication", "authorization", "token", "JWT", "session"]
-        validation: ["validation", "schema", "input", "sanitize"]
-    error_patterns: {}
+        validation: ["validation", "schema", "pydantic", "input", "sanitize"]
+        async: ["async", "await", "asyncio", "concurrent"]
+    error_patterns:
+      database_error:
+        frequency: 30
+        signals: ["IntegrityError", "OperationalError", "sqlalchemy.exc", "UNIQUE constraint"]
+        description: "数据库连接、查询、事务问题"
+      validation_error:
+        frequency: 25
+        signals: ["ValidationError", "pydantic", "422 Unprocessable", "field required"]
+        description: "输入验证、Schema 验证失败"
+      api_error:
+        frequency: 20
+        signals: ["HTTPException", "status_code", "404 Not Found", "405 Method Not Allowed"]
+        description: "API 端点错误、HTTP 状态码问题"
+      auth_error:
+        frequency: 10
+        signals: ["401 Unauthorized", "403 Forbidden", "token", "credentials"]
+        description: "认证授权失败、Token 问题"
+      async_error:
+        frequency: 8
+        signals: ["TimeoutError", "CancelledError", "asyncio", "await"]
+        description: "异步操作、并发问题"
+      config_error:
+        frequency: 5
+        signals: ["KeyError", "environment", "settings", "config"]
+        description: "配置加载、环境变量问题"
 
   e2e:
     name: "E2E (Playwright/Cypress)"
@@ -61,8 +86,33 @@ stacks:
       bugfix_dir: "docs/bugfix"
       best_practices_dir: "docs/best-practices"
       search_keywords:
-        selector: ["selector", "locator", "element", "getBy", "findBy"]
-        timing: ["timeout", "wait", "retry", "polling"]
-        network: ["intercept", "mock", "request", "route"]
-        assertion: ["expect", "assert", "toHave", "toBe"]
-    error_patterns: {}
+        selector: ["selector", "locator", "element", "getBy", "findBy", "data-testid"]
+        timing: ["timeout", "wait", "retry", "polling", "waitFor"]
+        network: ["intercept", "mock", "request", "route", "fulfill"]
+        assertion: ["expect", "assert", "toHave", "toBe", "toBeVisible"]
+        navigation: ["goto", "navigate", "url", "redirect"]
+    error_patterns:
+      timeout_error:
+        frequency: 35
+        signals: ["Timeout.*exceeded", "waiting for", "locator", "30000ms"]
+        description: "元素等待超时、操作超时"
+      selector_error:
+        frequency: 25
+        signals: ["strict mode violation", "resolved to.*elements", "not found"]
+        description: "选择器找不到元素、选择器不唯一"
+      assertion_error:
+        frequency: 15
+        signals: ["expect.*toHave", "Expected", "Received", "AssertionError"]
+        description: "断言失败、预期不匹配"
+      network_error:
+        frequency: 12
+        signals: ["Route handler", "intercept", "net::ERR", "request failed"]
+        description: "网络请求失败、API 拦截问题"
+      navigation_error:
+        frequency: 8
+        signals: ["page.goto", "navigation", "ERR_NAME_NOT_RESOLVED"]
+        description: "页面导航失败、URL 不匹配"
+      environment_error:
+        frequency: 3
+        signals: ["browser.*launch", "context", "Target closed"]
+        description: "浏览器启动失败、环境配置问题"

@@ -1,7 +1,7 @@
 {
   "name": "swiss-army-knife",
   "version": "0.3.0",
-  "description": "Multi-stack bugfix workflow plugin supporting frontend, backend, and e2e with 6-phase process",
+  "description": "Multi-stack bugfix workflow plugin supporting backend and e2e with 6-phase process (frontend agents ready, workflow pending)",
   "author": {
     "name": "penkzhou"
   },
