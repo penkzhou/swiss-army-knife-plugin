@@ -12,7 +12,7 @@ This repository is a Claude Code plugin marketplace containing specialized plugi
 
 ```bash
 # Add this marketplace
-/plugin marketplace add /path/to/swiss-army-knife-plugin
+/plugin marketplace add https://github.com/penkzhou/swiss-army-knife-plugin
 
 # Install plugin
 /plugin install swiss-army-knife@swiss-army-knife-plugin
