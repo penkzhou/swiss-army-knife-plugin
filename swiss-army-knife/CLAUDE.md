@@ -6,11 +6,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-这是一个 Claude Code 插件，实现了标准化的 6 阶段 bugfix 工作流，支持多技术栈（后端、端到端、前端）。工作流通过专门的命令（`/fix-backend`、`/fix-e2e`、`/fix-frontend`）协调各个专业化 agent。
+这是一个 Claude Code 插件，实现了：
+1. **标准化 6 阶段 bugfix 工作流**：支持多技术栈（后端、端到端、前端），通过 `/fix-backend`、`/fix-e2e`、`/fix-frontend` 命令协调
+2. **PR Code Review 处理工作流**：8 阶段流程 (Phase 0-7)，通过 `/fix-pr-review` 命令自动分析和修复 PR 中的代码审查评论
 
 ## 架构
 
 ### 工作流流程
+
+#### Bugfix 工作流 (6 阶段)
 
 ```text
 /fix-backend / /fix-e2e 命令 → Phase 0-5 协调
@@ -25,19 +29,46 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
      └─ Phase 5: quality-gate + knowledge agents → 验证和知识沉淀
 ```
 
+#### PR Review 工作流 (8 阶段，Phase 0-7)
+
+```text
+/fix-pr-review <PR_NUMBER> 命令 → Phase 0-7 协调
+     │
+     ├─ Phase 0: 初始化
+     │   └─ init-collector agent → 验证 gh CLI、获取 PR 元信息、最后 commit 时间
+     ├─ Phase 1: 评论获取
+     │   └─ comment-fetcher agent → 获取所有 review comments 和 issue comments
+     ├─ Phase 2: 评论过滤
+     │   └─ comment-filter agent → 过滤过时评论（在最后 commit 之前创建的）
+     ├─ Phase 3: 评论分类
+     │   └─ comment-classifier agent → 置信度评估、优先级分类、技术栈识别
+     ├─ Phase 4: 修复协调
+     │   └─ fix-coordinator agent → 调用对应技术栈的 bugfix 工作流
+     ├─ Phase 5: 回复生成
+     │   └─ response-generator agent → 基于修复结果生成回复
+     ├─ Phase 6: 回复提交
+     │   └─ response-submitter agent → 通过 gh CLI 提交回复到 PR
+     └─ Phase 7: 汇总报告
+         └─ summary-reporter agent → 生成处理报告和知识沉淀
+```
+
 ### 组件结构
 
 插件采用多技术栈架构：
 
-- **Commands**：`commands/fix-backend.md`、`commands/fix-e2e.md`、`commands/fix-frontend.md` - 按技术栈分离的协调器
-- **Agents**：按技术栈组织
+- **Commands**：
+  - `commands/fix-backend.md`、`commands/fix-e2e.md`、`commands/fix-frontend.md` - 按技术栈分离的 bugfix 协调器
+  - `commands/fix-pr-review.md` - PR Code Review 处理协调器
+- **Agents**：按技术栈和功能组织
   - `agents/backend/`：后端专用 agents（init-collector、error-analyzer、root-cause、solution、executor、quality-gate、knowledge）
   - `agents/e2e/`：端到端测试专用 agents（含 init-collector）
   - `agents/frontend/`：前端专用 agents（init-collector、error-analyzer、root-cause、solution、executor、quality-gate、knowledge）
-- **Skills**：按技术栈提供知识库
+  - `agents/pr-review/`：PR Review 专用 agents（init-collector、comment-fetcher、comment-filter、comment-classifier、fix-coordinator、response-generator、response-submitter、summary-reporter）
+- **Skills**：按技术栈和功能提供知识库
   - `skills/backend-bugfix/SKILL.md` - ✅ 完整，包含 Python/FastAPI 错误模式和 pytest 最佳实践
   - `skills/e2e-bugfix/SKILL.md` - ✅ 完整，包含 Playwright 错误模式和调试技巧
   - `skills/frontend-bugfix/SKILL.md` - ✅ 完整，包含 React/TypeScript 错误模式和 vitest/jest 最佳实践
+  - `skills/pr-review-analysis/SKILL.md` - ✅ 完整，包含置信度评估、优先级分类、技术栈识别和回复最佳实践
 - **Configuration**：`.claude/swiss-army-knife.yaml` - 项目级配置，自定义命令和路径
 - **Hooks**：`hooks/hooks.json` - 在测试失败或代码变更时触发建议
 
@@ -52,11 +83,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 工作流使用置信度分数（0-100）来决定行为：
 
+#### Bugfix 工作流
+
 - **≥60**：自动继续
 - **40-59**：暂停并询问用户
 - **<40**：停止并收集更多信息
 
 这在 root-cause agent 输出中实现，并在各技术栈的 fix-{stack}.md（如 fix-backend.md）Phase 1.3 中评估。
+
+#### PR Review 工作流
+
+- **≥80**：高置信度，自动修复
+- **60-79**：中置信度，询问用户后处理
+- **40-59**：低置信度，标记需澄清
+- **<40**：极低置信度，跳过并回复 reviewer
+
+置信度基于 4 个加权因素计算：
+- 明确性 (Clarity) - 40%：评论是否清晰指出问题
+- 具体性 (Specificity) - 30%：是否有具体示例或测试场景
+- 上下文 (Context) - 20%：是否理解代码上下文和影响
+- 可复现 (Reproducibility) - 10%：是否有复现步骤
 
 ## 插件开发
 

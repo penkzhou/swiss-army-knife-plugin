@@ -116,3 +116,152 @@ stacks:
         frequency: 3
         signals: ["browser.*launch", "context", "Target closed"]
         description: "浏览器启动失败、环境配置问题"
+
+  pr_review:
+    name: "PR Review Handler"
+
+    # 置信度阈值
+    # 置信度范围: 0-100，决定评论的处理方式
+    confidence_threshold:
+      auto_fix: 80            # >= 80 高置信度，自动修复
+      ask_user: 60            # 60-79 中置信度，询问用户后处理
+      need_clarification: 40  # 40-59 低置信度，标记需澄清
+      skip: 40                # < 40 极低置信度，跳过并回复 reviewer
+
+    # 优先级定义
+    priority:
+      P0:
+        name: "blocker"
+        description: "阻塞上线的安全/数据问题"
+        auto_fix: true
+        batch_size: 1   # 逐个处理
+      P1:
+        name: "critical"
+        description: "核心功能缺陷"
+        auto_fix: true
+        batch_size: 3
+      P2:
+        name: "major"
+        description: "重要改进"
+        auto_fix: false  # 询问用户
+        batch_size: 5
+      P3:
+        name: "minor"
+        description: "建议/风格问题"
+        auto_fix: false
+        batch_size: 10
+
+    # GitHub API 配置
+    github:
+      rate_limit_buffer: 10
+      timeout_seconds: 30
+
+    # 置信度评分因素权重
+    confidence_factors:
+      clarity: 0.4          # 评论明确性
+      specificity: 0.3      # 具体示例
+      context: 0.2          # 上下文理解
+      reproducibility: 0.1  # 可复现性
+
+    # 优先级分类关键词
+    classification_keywords:
+      security:
+        patterns: ["security", "vulnerability", "injection", "XSS", "CSRF", "leak", "exposed", "sensitive"]
+        priority_boost: 2
+      critical:
+        patterns: ["crash", "data loss", "downtime", "blocker", "production", "urgent"]
+        priority: "P0"
+      bug:
+        patterns: ["bug", "broken", "fail", "error", "incorrect", "doesn't work", "not working"]
+        priority: "P1"
+      improvement:
+        patterns: ["should", "better", "improve", "optimize", "refactor", "performance"]
+        priority: "P2"
+      suggestion:
+        patterns: ["consider", "maybe", "could", "nit", "style", "minor", "typo"]
+        priority: "P3"
+
+    # 技术栈路径映射（可被项目配置覆盖）
+    stack_path_patterns:
+      backend:
+        - "src/api/**"
+        - "src/models/**"
+        - "src/services/**"
+        - "app/**"
+        - "tests/backend/**"
+        - "tests/unit/**"
+        - "**/*.py"
+      frontend:
+        - "src/components/**"
+        - "src/pages/**"
+        - "src/hooks/**"
+        - "src/stores/**"
+        - "tests/frontend/**"
+        - "**/*.tsx"
+        - "**/*.jsx"
+      e2e:
+        - "tests/e2e/**"
+        - "e2e/**"
+        - "playwright/**"
+        - "cypress/**"
+
+    # 文档配置
+    docs:
+      bugfix_dir: "docs/bugfix"
+      best_practices_dir: "docs/best-practices"
+      review_reports_dir: "docs/reviews"
+
+    # 回复模板
+    response_templates:
+      fixed: |
+        ✅ 已修复
+
+        感谢指出！已在 `{commit_sha}` 中完成修复。
+
+        **变更**：
+        - 文件：`{file}:{line}`
+        - 修复详情：[Bugfix 文档]({doc_path})
+
+        **测试**：
+        {test_results}
+
+      need_clarification: |
+        ⏸️ 需要更多信息
+
+        感谢建议！为了更好地理解您的意图，能否提供更多细节？
+
+        {questions}
+
+      skipped_low_confidence: |
+        ❌ 暂不处理
+
+        感谢建议！当前置信度较低（{confidence}%），原因：{reason}
+
+        如果您认为这是重要问题，请提供：
+        1. 具体的期望行为
+        2. 复现步骤（如适用）
+
+      outdated: |
+        ℹ️ 评论已过时
+
+        此评论在最新代码提交之前创建，相关代码可能已更新。
+        如果问题仍然存在，请更新评论或创建新评论。
+
+      user_declined: |
+        ⏭️ 用户选择暂不处理
+
+        感谢您的建议！PR 作者已确认此评论，但选择在当前迭代中暂不处理。
+
+        原因：{reason}
+
+        如果您认为这是必须修复的问题，请与 PR 作者进一步讨论。
+
+      failed: |
+        ❌ 自动修复失败
+
+        感谢指出！我们尝试自动修复此问题，但未能成功完成。
+
+        **失败原因**：{error}
+        **尝试次数**：{attempts}
+
+        我们将人工处理此问题。如果您有更多建议，欢迎补充说明。
