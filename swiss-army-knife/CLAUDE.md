@@ -134,14 +134,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Agent 用
 name: backend-error-analyzer   # 必填：agent 名称
 description: Use this agent... # 必填：触发条件描述
-model: opus                    # 所需模型 (opus/sonnet/haiku)
+model: opus                    # 所需模型 (opus/sonnet/haiku/inherit)
 tools: Read, Glob, Grep        # 显式工具权限（逗号分隔）
+skills: backend-bugfix         # 可选：关联的知识库
 
 # Command 用
 description: 简短描述
 argument-hint: "[--flag=value]"
 allowed-tools: Read, Write, Task   # 显式工具权限（逗号分隔）
 ```
+
+#### model 字段说明
+
+| 值 | 说明 |
+| --- | --- |
+| `opus` | 使用最强模型，适合复杂分析和决策 |
+| `sonnet` | 平衡性能和成本，适合一般任务 |
+| `haiku` | 最快最省成本，适合简单任务 |
+| `inherit` | 继承调用者的模型设置，推荐用于保持一致性 |
 
 ### 最佳实践参考
 

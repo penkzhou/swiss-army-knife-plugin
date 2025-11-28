@@ -1,7 +1,7 @@
 ---
 name: frontend-quality-gate
 description: Use this agent when fix implementation is complete and you need to verify quality gates. Checks test coverage, lint, typecheck, and ensures no regressions.
-model: opus
+model: inherit
 tools: Bash, Read, Grep
 ---
 

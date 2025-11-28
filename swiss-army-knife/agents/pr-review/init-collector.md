@@ -245,7 +245,7 @@ gh repo view --json owner,name --jq '"\(.owner.login)/\(.name)"'
   }
   ```
 
-### E2.5: 权限不足
+### E3: 权限不足
 
 - **检测**：`gh api repos/{owner}/{repo}` 返回的 permissions 中 `push` 和 `triage` 都为 `false`
 - **行为**：**停止**
@@ -263,7 +263,7 @@ gh repo view --json owner,name --jq '"\(.owner.login)/\(.name)"'
 
 - **原因**：提前检查避免在 Phase 6 才发现无法提交回复
 
-### E3: PR 不存在
+### E4: PR 不存在
 
 - **检测**：`gh pr view` 返回 404
 - **行为**：**停止**
@@ -277,19 +277,19 @@ gh repo view --json owner,name --jq '"\(.owner.login)/\(.name)"'
   }
   ```
 
-### E4: PR 已关闭/合并
+### E5: PR 已关闭/合并
 
 - **检测**：PR state 不是 OPEN
 - **行为**：**警告**并继续
 - **输出**：添加警告到 `warnings` 数组
 
-### E5: 配置缺失
+### E6: 配置缺失
 
 - **检测**：defaults.yaml 不存在或格式错误
 - **行为**：**停止**
 - **输出**：报告配置错误
 
-### E6: 项目配置格式错误
+### E7: 项目配置格式错误
 
 - **检测**：项目配置 `.claude/swiss-army-knife.yaml` 存在但 YAML 解析失败或字段类型错误
 - **行为**：**警告**，回退到默认配置

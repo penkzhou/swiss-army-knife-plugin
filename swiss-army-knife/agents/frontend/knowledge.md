@@ -1,7 +1,7 @@
 ---
 name: frontend-knowledge
 description: Use this agent when bugfix is complete and quality gates have passed. Extracts learnings from the fix process and updates documentation.
-model: opus
+model: inherit
 tools: Read, Write, Edit, Glob
 ---
 

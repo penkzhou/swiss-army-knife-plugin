@@ -12,6 +12,28 @@
       }
     },
     {
+      "event": "PostToolUse",
+      "matcher": {
+        "tool_name": "Bash",
+        "pattern": "make test.*TARGET=backend|make test TARGET=backend"
+      },
+      "config": {
+        "type": "prompt",
+        "prompt": "检查 Bash 工具执行结果。如果测试失败（exit code 非 0 或输出包含 FAIL/ERROR），建议用户使用 `/swiss-army-knife:fix-backend` 命令进行标准化 bugfix 流程。\n\n输出格式：\n- 如果测试通过：不输出任何内容\n- 如果测试失败：输出 '💡 检测到后端测试失败，建议使用 `/swiss-army-knife:fix-backend` 启动标准化 bugfix 流程'"
+      }
+    },
+    {
+      "event": "PostToolUse",
+      "matcher": {
+        "tool_name": "Bash",
+        "pattern": "make test.*TARGET=e2e|make test TARGET=e2e"
+      },
+      "config": {
+        "type": "prompt",
+        "prompt": "检查 Bash 工具执行结果。如果测试失败（exit code 非 0 或输出包含 FAIL/ERROR），建议用户使用 `/swiss-army-knife:fix-e2e` 命令进行标准化 bugfix 流程。\n\n输出格式：\n- 如果测试通过：不输出任何内容\n- 如果测试失败：输出 '💡 检测到 E2E 测试失败，建议使用 `/swiss-army-knife:fix-e2e` 启动标准化 bugfix 流程'"
+      }
+    },
+    {
       "event": "SessionStart",
       "config": {
         "type": "prompt",

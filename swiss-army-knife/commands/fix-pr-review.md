@@ -100,9 +100,15 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, TodoWrite, AskUserQues
 
 ### 1.2 验证输出
 
-1. 检查 `comments` 数组存在
-2. 如果为空，**停止**并报告 "PR 没有评论"
-3. 记录 `summary.total` 到日志
+1. **非空验证**：确保 Task 工具返回非空值
+   - 如果为 null/undefined：**停止**，报告 "comment-fetcher agent 未返回响应"
+2. **格式验证**：确保返回有效 JSON
+3. 检查 `comments` 数组存在
+4. **状态验证**：检查 `status` 字段
+   - 如果为 `PARTIAL_SUCCESS`：向用户展示警告，询问是否继续处理不完整数据
+   - 如果为 `FAILED`：**停止**并报告错误原因
+5. 如果 `comments` 为空，**停止**并报告 "PR 没有评论"
+6. 记录 `summary.total` 到日志
 
 ---
 
@@ -138,7 +144,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, TodoWrite, AskUserQues
    - 已过滤: {filtered}
      - 早于最后 commit: {by_reason.created_before_last_commit}
      - 已解决: {by_reason.already_resolved}
-     - Bot 评论: {by_reason.bot_comment}
+     - CI 自动报告: {by_reason.ci_auto_report}
    ```
 
 ---

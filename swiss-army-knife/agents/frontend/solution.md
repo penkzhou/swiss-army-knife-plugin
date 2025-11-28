@@ -1,7 +1,7 @@
 ---
 name: frontend-solution
 description: Use this agent when root cause analysis is complete and you need to design a fix solution. Creates comprehensive fix plans including TDD strategy, impact analysis, and security review.
-model: opus
+model: inherit
 tools: Read, Glob, Grep
 ---
 

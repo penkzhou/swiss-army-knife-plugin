@@ -28,12 +28,14 @@ swiss-army-knife-plugin/
 
 ### swiss-army-knife
 
-标准化 6 阶段 bugfix 工作流插件，支持多技术栈（后端、E2E，前端计划中）。
+标准化 6 阶段 bugfix 工作流插件，支持多技术栈（后端、E2E、前端），以及 8 阶段 PR Code Review 处理工作流。
 
 **主要命令：**
 
 - `/fix-backend` - 后端 bugfix 工作流
 - `/fix-e2e` - E2E 测试 bugfix 工作流
+- `/fix-frontend` - 前端 bugfix 工作流
+- `/fix-pr-review` - PR Code Review 处理工作流
 
 **详细开发文档请参考：** `swiss-army-knife/CLAUDE.md`
 

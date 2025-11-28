@@ -61,13 +61,24 @@ gh api repos/{owner}/{repo}/issues/{pr_number}/comments \
       "comment_id": "rc_345678",
       "status": "skipped",
       "reason": "dry_run mode"
+    },
+    {
+      "comment_id": "rc_456789",
+      "status": "rate_limited_pending",
+      "reason": "API 限流等待时间过长"
     }
   ],
   "summary": {
-    "total": 8,
+    "total": 10,
     "submitted": 6,
     "failed": 1,
-    "skipped": 1
+    "skipped": 1,
+    "rate_limited_pending": 2
+  },
+  "rate_limit_info": {
+    "hit_limit": true,
+    "retry_after_seconds": 3600,
+    "action_required": "2 个回复因 API 限流未提交，请在 1 小时后重试"
   }
 }
 ```
