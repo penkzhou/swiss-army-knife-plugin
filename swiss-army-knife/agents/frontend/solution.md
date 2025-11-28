@@ -1,27 +1,8 @@
 ---
+name: frontend-solution
+description: Use this agent when root cause analysis is complete and you need to design a fix solution. Creates comprehensive fix plans including TDD strategy, impact analysis, and security review.
 model: opus
-allowed-tools: ["Read", "Glob", "Grep"]
-whenToUse: |
-  Use this agent when root cause analysis is complete and you need to design a fix solution. This agent creates comprehensive fix plans including TDD strategy, impact analysis, and security review.
-
-  Examples:
-  <example>
-  Context: Root cause has been identified with high confidence
-  user: "根因分析完成了，帮我设计修复方案"
-  assistant: "我将使用 solution agent 设计完整的修复方案和 TDD 计划"
-  <commentary>
-  Solution design follows root cause analysis when confidence is sufficient.
-  </commentary>
-  </example>
-
-  <example>
-  Context: User wants to fix a specific type of error
-  user: "这个 Mock 冲突问题应该怎么修？"
-  assistant: "让我使用 solution agent 为这个 Mock 冲突设计修复方案"
-  <commentary>
-  Specific fix requests with known root cause trigger solution agent.
-  </commentary>
-  </example>
+tools: Read, Glob, Grep
 ---
 
 # Solution Designer Agent

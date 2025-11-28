@@ -2,7 +2,7 @@
 name: pr-review-fix-coordinator
 description: Use this agent when classified PR comments are ready for fixing. Applies confidence-driven decision making (>=80 auto-fix, 60-79 ask user, <60 skip); processes by priority order (P0 individually, P1 in batches); dispatches to /fix-backend, /fix-frontend, or /fix-e2e workflows based on tech stack. Triggers in Phase 4 after comment classification.
 model: opus
-tools: Task, Read, Write, TodoWrite, AskUserQuestion
+tools: Task, Read, Write, TodoWrite, AskUserQuestion, SlashCommand
 skills: pr-review-analysis
 ---
 
@@ -227,28 +227,94 @@ def dispatch_fix(comment):
         "requirement": requirement
     }
 
-    # 调用对应技术栈的 bugfix 工作流
-    if stack == 'backend':
-        result = Task(
-            subagent_type="general-purpose",
-            prompt=build_backend_fix_prompt(fix_context)
-        )
-    elif stack == 'frontend':
-        result = Task(
-            subagent_type="general-purpose",
-            prompt=build_frontend_fix_prompt(fix_context)
-        )
-    elif stack == 'e2e':
-        result = Task(
-            subagent_type="general-purpose",
-            prompt=build_e2e_fix_prompt(fix_context)
-        )
-    else:
-        # 询问用户指定技术栈
-        stack = AskUserQuestion("请指定技术栈：backend/frontend/e2e")
-        return dispatch_fix_with_stack(comment, stack)
+    try:
+        # 调用对应技术栈的 bugfix 工作流
+        if stack == 'backend':
+            result = Task(
+                subagent_type="general-purpose",
+                prompt=build_backend_fix_prompt(fix_context)
+            )
+        elif stack == 'frontend':
+            result = Task(
+                subagent_type="general-purpose",
+                prompt=build_frontend_fix_prompt(fix_context)
+            )
+        elif stack == 'e2e':
+            result = Task(
+                subagent_type="general-purpose",
+                prompt=build_e2e_fix_prompt(fix_context)
+            )
+        else:
+            # 询问用户指定技术栈
+            stack = AskUserQuestion("请指定技术栈：backend/frontend/e2e")
+            return dispatch_fix_with_stack(comment, stack)
 
-    return parse_fix_result(result)
+        # 验证 Task 返回值
+        if result is None:
+            return {
+                "status": "failed",
+                "error": "Task 工具未返回响应",
+                "comment_id": comment['id'],
+                "user_action_required": True
+            }
+
+        return parse_fix_result(result, comment['id'])
+
+    except TimeoutError:
+        return {
+            "status": "failed",
+            "error": "修复工作流超时（>30分钟）",
+            "comment_id": comment['id'],
+            "suggestion": "考虑简化问题范围或手动修复"
+        }
+    except Exception as e:
+        return {
+            "status": "failed",
+            "error": f"未预期的错误: {type(e).__name__}: {str(e)}",
+            "comment_id": comment['id'],
+            "user_action_required": True
+        }
+
+
+def parse_fix_result(result, comment_id):
+    """
+    解析 bugfix 工作流返回的结果
+
+    预期输入：包含 status, fix_details 等字段的 JSON
+    返回：标准化的 fix_result 对象
+    """
+    if result is None:
+        return {
+            "status": "failed",
+            "error": "工作流未返回结果",
+            "comment_id": comment_id
+        }
+
+    # 尝试 JSON 解析（如果是字符串）
+    if isinstance(result, str):
+        try:
+            import json
+            result = json.loads(result)
+        except json.JSONDecodeError as e:
+            return {
+                "status": "failed",
+                "error": f"无法解析工作流输出: {str(e)}",
+                "raw_output": result[:500] if len(result) > 500 else result,
+                "comment_id": comment_id
+            }
+
+    # 提取关键字段
+    if 'status' not in result:
+        return {
+            "status": "failed",
+            "error": "工作流输出缺少 status 字段",
+            "raw_output": str(result)[:500],
+            "comment_id": comment_id
+        }
+
+    # 添加 comment_id 到结果
+    result['comment_id'] = comment_id
+    return result
 ```
 
 ### 8. 构建修复 Prompt

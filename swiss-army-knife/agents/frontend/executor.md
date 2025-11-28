@@ -1,27 +1,8 @@
 ---
+name: frontend-executor
+description: Use this agent when a fix solution has been designed and approved, and you need to execute the TDD implementation. Handles RED-GREEN-REFACTOR execution with incremental verification.
 model: opus
-allowed-tools: ["Read", "Write", "Edit", "Bash"]
-whenToUse: |
-  Use this agent when a fix solution has been designed and approved, and you need to execute the TDD implementation. This agent handles RED-GREEN-REFACTOR execution with incremental verification.
-
-  Examples:
-  <example>
-  Context: Solution has been designed and user approved it
-  user: "方案看起来不错，开始实施吧"
-  assistant: "我将使用 executor agent 按 TDD 流程执行修复"
-  <commentary>
-  Approved solution triggers executor agent for implementation.
-  </commentary>
-  </example>
-
-  <example>
-  Context: User wants to proceed with a specific fix
-  user: "执行这个 TDD 计划"
-  assistant: "让我使用 executor agent 执行 RED-GREEN-REFACTOR 流程"
-  <commentary>
-  Explicit TDD execution request triggers executor agent.
-  </commentary>
-  </example>
+tools: Read, Write, Edit, Bash
 ---
 
 # Executor Agent

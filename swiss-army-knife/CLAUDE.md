@@ -140,7 +140,7 @@ tools: Read, Glob, Grep        # 显式工具权限（逗号分隔）
 # Command 用
 description: 简短描述
 argument-hint: "[--flag=value]"
-allowed-tools: ["Read", "Write", "Task"]
+allowed-tools: Read, Write, Task   # 显式工具权限（逗号分隔）
 ```
 
 ### 最佳实践参考

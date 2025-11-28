@@ -8,14 +8,14 @@
       },
       "config": {
         "type": "prompt",
-        "prompt": "检查 Bash 工具执行结果。如果测试失败（exit code 非 0 或输出包含 FAIL/ERROR），建议用户使用 `/swiss-army-knife-plugin:fix` 命令进行标准化 bugfix 流程。\n\n输出格式：\n- 如果测试通过：不输出任何内容\n- 如果测试失败：输出 '💡 检测到前端测试失败，建议使用 `/swiss-army-knife-plugin:fix` 启动标准化 bugfix 流程'"
+        "prompt": "检查 Bash 工具执行结果。如果测试失败（exit code 非 0 或输出包含 FAIL/ERROR），建议用户使用 `/swiss-army-knife:fix-frontend` 命令进行标准化 bugfix 流程。\n\n输出格式：\n- 如果测试通过：不输出任何内容\n- 如果测试失败：输出 '💡 检测到前端测试失败，建议使用 `/swiss-army-knife:fix-frontend` 启动标准化 bugfix 流程'"
       }
     },
     {
       "event": "SessionStart",
       "config": {
         "type": "prompt",
-        "prompt": "检查当前工作目录是否有前端相关的变更文件（使用 git diff --name-only HEAD~1）。\n\n如果检测到以下类型的变更：\n- `**/*.test.{ts,tsx}` - 测试文件\n- `**/components/**/*.tsx` - 组件文件\n- `**/hooks/**/*.ts` - Hook 文件\n\n则输出简短提示：'📝 检测到前端代码变更，如需修复测试问题可使用 `/swiss-army-knife-plugin:fix`'\n\n如果没有相关变更，不输出任何内容。"
+        "prompt": "检查当前工作目录是否有前端相关的变更文件（使用 git diff --name-only HEAD~1）。\n\n如果检测到以下类型的变更：\n- `**/*.test.{ts,tsx}` - 测试文件\n- `**/components/**/*.tsx` - 组件文件\n- `**/hooks/**/*.ts` - Hook 文件\n\n则输出简短提示：'📝 检测到前端代码变更，如需修复测试问题可使用 `/swiss-army-knife:fix-frontend`'\n\n如果没有相关变更，不输出任何内容。"
       }
     }
   ]

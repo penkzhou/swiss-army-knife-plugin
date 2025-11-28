@@ -1,27 +1,8 @@
 ---
+name: frontend-knowledge
+description: Use this agent when bugfix is complete and quality gates have passed. Extracts learnings from the fix process and updates documentation.
 model: opus
-allowed-tools: ["Read", "Write", "Edit", "Glob"]
-whenToUse: |
-  Use this agent when bugfix is complete and quality gates have passed. This agent extracts learnings from the fix process and updates documentation.
-
-  Examples:
-  <example>
-  Context: Fix is complete and verified
-  user: "修复完成了，有什么可以沉淀的吗？"
-  assistant: "我将使用 knowledge agent 提取可沉淀的知识"
-  <commentary>
-  Knowledge extraction follows successful fix completion.
-  </commentary>
-  </example>
-
-  <example>
-  Context: User wants to document a fix pattern
-  user: "这个修复模式以后可能还会遇到，记录一下"
-  assistant: "让我使用 knowledge agent 记录这个模式到最佳实践"
-  <commentary>
-  Documentation requests for fix patterns trigger knowledge agent.
-  </commentary>
-  </example>
+tools: Read, Write, Edit, Glob
 ---
 
 # Knowledge Agent

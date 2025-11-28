@@ -1,7 +1,7 @@
 ---
 description: 执行标准化 Backend Bugfix 工作流（六阶段流程）
 argument-hint: "[--phase=0,1,2,3,4,5|all] [--dry-run]"
-allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWrite", "AskUserQuestion"]
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, TodoWrite, AskUserQuestion
 ---
 
 # Bugfix Backend Workflow v2.2
@@ -250,73 +250,52 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 
 ## Phase 3: 方案文档化
 
-### 3.1 生成 Bugfix 文档
+### 3.1 启动 doc-writer agent
 
-如果不是 `--dry-run` 模式，使用 Write tool 创建文档：
+如果不是 `--dry-run` 模式，使用 Task tool 调用 backend-doc-writer agent：
 
-```text
-文件路径: [从 init_ctx["config"]["docs"]["bugfix_dir"] 获取]/{YYYY-MM-DD}-{issue-slug}.md
-```
+> 使用 backend-doc-writer agent 生成 Bugfix 文档：
+>
+> ## 根因分析
+>
+> [Phase 1 root-cause 的输出]
+>
+> ## 修复方案
+>
+> [Phase 2 solution 的输出]
+>
+> ## 文档配置
+>
+> - bugfix_dir: [从 init_ctx["config"]["docs"]["bugfix_dir"] 获取]
+> - 日期: [当前日期 YYYY-MM-DD]
+> - 置信度: [Phase 1 的置信度分数]
 
-文档模板：
+### 3.2 验证 doc-writer 输出
 
-````markdown
-# [问题描述] Bugfix 报告
+验证 doc-writer 返回的 JSON 格式：
 
-> 日期：{date}
-> 置信度：{confidence}/100
+1. **Agent 响应验证**：
+   - Task 工具返回值非空（null/undefined 检查）
+   - 返回值是有效 JSON（可解析）
+   - 如果失败：**停止**，报告 "doc-writer agent 未返回有效响应"
 
-## 1. 问题概述
+2. **必填字段检查**：
+   - `status` 字段存在
+   - `status` 为 "success"（不接受其他值如 "partial"）
+   - `document.path` 存在且为非空字符串（长度 > 0）
 
-### 1.1 错误信息
-[结构化错误列表]
+3. **文件存在性验证**：
+   - 使用 Read tool 验证 `document.path` 文件已创建
+   - 如果文件不存在：**停止**，报告 "文档未创建，请检查目录权限"
 
-### 1.2 根因分析
-[根因描述 + 证据]
+4. **失败处理**：
+   - `status` 为 "failed"：**停止**，报告 `error` 字段内容
+   - `status` 为其他值：**停止**，报告 "doc-writer 返回未知状态: {status}"
 
-## 2. 修复方案
-
-### 2.1 主方案
-[方案描述]
-
-### 2.2 TDD 计划
-
-#### RED Phase
-```python
-# 先写失败测试
-```
-
-#### GREEN Phase
-
-```python
-# 最小实现
-```
-
-#### REFACTOR Phase
-
-- [ ] 重构项 1
-- [ ] 重构项 2
-
-### 2.3 影响分析
-
-[影响范围]
-
-### 2.4 风险评估
-
-[风险列表]
-
-## 3. 验证计划
-
-- [ ] 单元测试通过
-- [ ] 覆盖率 >= 90%
-- [ ] 无回归
-
-````
-
-### 3.2 等待用户确认
+### 3.3 等待用户确认
 
 **询问用户**：
-> "Bugfix 方案已生成，请查看 [init_ctx["config"]["docs"]["bugfix_dir"]]/{date}-{issue}.md。
+> "Bugfix 方案已生成，请查看 [doc-writer 输出的 document.path]。
 > 确认后开始实施，或提出调整意见。"
 
 如果是 `--dry-run` 模式，到此结束。

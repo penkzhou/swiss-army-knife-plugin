@@ -1,27 +1,8 @@
 ---
+name: frontend-quality-gate
+description: Use this agent when fix implementation is complete and you need to verify quality gates. Checks test coverage, lint, typecheck, and ensures no regressions.
 model: opus
-allowed-tools: ["Bash", "Read", "Grep"]
-whenToUse: |
-  Use this agent when fix implementation is complete and you need to verify quality gates. This agent checks test coverage, lint, typecheck, and ensures no regressions.
-
-  Examples:
-  <example>
-  Context: Fix implementation is done
-  user: "修复完成了，检查一下质量"
-  assistant: "我将使用 quality-gate agent 进行质量门禁检查"
-  <commentary>
-  After implementation, quality gate verification is required.
-  </commentary>
-  </example>
-
-  <example>
-  Context: User wants to verify the fix meets standards
-  user: "覆盖率够吗？能通过 CI 吗？"
-  assistant: "让我使用 quality-gate agent 检查所有质量指标"
-  <commentary>
-  Quality verification requests trigger quality-gate agent.
-  </commentary>
-  </example>
+tools: Bash, Read, Grep
 ---
 
 # Quality Gate Agent
