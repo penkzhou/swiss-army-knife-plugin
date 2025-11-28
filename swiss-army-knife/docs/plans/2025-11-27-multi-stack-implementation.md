@@ -162,7 +162,7 @@ Run: `mkdir -p swiss-army-knife/agents/backend swiss-army-knife/agents/e2e`
 
 **Step 2: 创建 backend error-analyzer 占位**
 
-```markdown
+````markdown
 <!-- swiss-army-knife/agents/backend/error-analyzer.md -->
 ---
 model: opus
@@ -209,11 +209,11 @@ whenToUse: |
 - **Glob**: 搜索历史文档
 - **Grep**: 搜索特定错误模式
 
-```
+````
 
 **Step 3: 创建 backend root-cause 占位**
 
-```markdown
+````markdown
 <!-- swiss-army-knife/agents/backend/root-cause.md -->
 ---
 model: opus
@@ -252,11 +252,11 @@ whenToUse: |
 }
 ```
 
-```
+````
 
 **Step 4: 创建 e2e error-analyzer 占位**
 
-```markdown
+````markdown
 <!-- swiss-army-knife/agents/e2e/error-analyzer.md -->
 ---
 model: opus
@@ -297,11 +297,11 @@ whenToUse: |
 }
 ```
 
-```
+````
 
 **Step 5: 创建 e2e root-cause 占位**
 
-```markdown
+````markdown
 <!-- swiss-army-knife/agents/e2e/root-cause.md -->
 ---
 model: opus
@@ -340,7 +340,7 @@ whenToUse: |
 }
 ```
 
-```
+````
 
 **Step 6: 验证文件创建**
 
@@ -543,7 +543,7 @@ git commit -m "refactor: rename fix to fix-frontend with config support"
 
 **Step 1: 创建 fix-backend.md**
 
-```markdown
+````markdown
 ---
 description: 执行标准化 Backend Bugfix 工作流（六阶段流程）
 argument-hint: "[--phase=0,1,2,3,4,5|all] [--dry-run]"
@@ -597,11 +597,11 @@ prompt: |
 
 当前仅支持 Phase 0 错误分析。
 
-```
+````
 
 **Step 2: 创建 fix-e2e.md**
 
-```markdown
+````markdown
 ---
 description: 执行标准化 E2E Bugfix 工作流（六阶段流程）
 argument-hint: "[--phase=0,1,2,3,4,5|all] [--dry-run]"
@@ -655,7 +655,7 @@ prompt: |
 
 当前仅支持 Phase 0 错误分析。
 
-```
+````
 
 **Step 3: 验证文件创建**
 
@@ -817,7 +817,7 @@ git commit -m "chore: bump version to 0.3.0, update description"
 
 在现有内容基础上添加配置说明章节：
 
-```markdown
+````markdown
 ## 配置
 
 ### 默认配置
@@ -855,7 +855,7 @@ stacks:
 | `/fix-backend` | Backend bugfix 工作流 | 🔧 占位 |
 | `/fix-e2e` | E2E bugfix 工作流 | 🔧 占位 |
 
-```
+````
 
 **Step 2: Commit**
 
@@ -955,7 +955,7 @@ Run: `find swiss-army-knife -type f -name "*.md" -o -name "*.yaml" -o -name "*.j
 
 Expected 结构：
 
-```
+```text
 swiss-army-knife/.claude-plugin/plugin.json
 swiss-army-knife/agents/backend/error-analyzer.md
 swiss-army-knife/agents/backend/root-cause.md

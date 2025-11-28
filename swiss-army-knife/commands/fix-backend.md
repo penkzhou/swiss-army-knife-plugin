@@ -73,7 +73,7 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 3. **警告展示**：
    - 如果 `warnings` 数组存在且非空，**立即向用户展示所有警告**：
 
-     ```
+     ```text
      ⚠️ 初始化警告：
      - [{code}] {message}
        影响：{impact}

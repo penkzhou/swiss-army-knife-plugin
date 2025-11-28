@@ -131,7 +131,7 @@ skills: pr-review-analysis
 
 记录所有待处理评论：
 
-```
+```javascript
 TodoWrite([
   { content: "处理 P0 评论 #rc_123456: token 过期检查", status: "pending", activeForm: "处理 P0 评论中" },
   { content: "处理 P1 评论 #rc_234567: 数据库事务", status: "pending", activeForm: "处理 P1 评论中" },

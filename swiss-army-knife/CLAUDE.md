@@ -124,7 +124,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Commands**：在 `commands/` 添加 `.md` 文件（如 `fix-{stack}.md`），包含 YAML frontmatter（`description`、`argument-hint`、`allowed-tools`）
 - **Agents**：在对应技术栈目录（`agents/backend/`、`agents/e2e/`）添加 `.md` 文件，包含 frontmatter（`name`、`description`、`model`、`tools`）
-- **Skills**：创建 `skills/{name}/SKILL.md`，包含 frontmatter（`name`、`description`、`version`）
+- **Skills**：创建 `skills/{name}/SKILL.md`，包含 frontmatter（`name`、`description`）
 - **Hooks**：在 `hooks/hooks.json` 添加条目（`event`、`matcher`、`config`）
 - **Configuration**：在目标项目的 `.claude/swiss-army-knife.yaml` 中配置技术栈特定的命令和路径
 

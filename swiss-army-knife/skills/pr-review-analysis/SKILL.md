@@ -1,7 +1,6 @@
 ---
 name: pr-review-analysis
 description: PR Code Review 评论分析知识库，包含置信度评估、优先级分类、技术栈识别和常见评论模式
-version: "1.0.0"
 ---
 
 # PR Review 分析 Skill

@@ -152,7 +152,7 @@ git push origin vX.Y.Z
 
 提示用户：
 
-```
+```text
 ✅ 发版完成！Tag vX.Y.Z 已创建。
 
 要推送到远程仓库，请运行：
@@ -166,7 +166,7 @@ git push origin vX.Y.Z
 
 输出发版摘要：
 
-```
+```text
 🎉 版本 X.Y.Z 发布成功！
 
 ✅ 已更新 CHANGELOG.md
@@ -205,7 +205,7 @@ git push origin vX.Y.Z
 1. 执行所有验证步骤
 2. 显示将要进行的操作（不实际执行）：
 
-   ```
+   ```text
    [DRY RUN] 将执行以下操作：
    1. 更新 CHANGELOG.md：将 [未发布] 内容移到 [X.Y.Z] - YYYY-MM-DD
    2. 更新 .claude-plugin/plugin.json：version: "0.2.0" → "X.Y.Z"

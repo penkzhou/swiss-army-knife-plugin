@@ -65,12 +65,10 @@ tools: Write, Read
 
 ## Git 提交
 
-```
-
+```text
 abc123d fix(pr-review): 添加 token 过期检查
 def456a fix(pr-review): 修复数据库事务处理
 ...
-
 ```
 
 ## 下一步
@@ -78,7 +76,6 @@ def456a fix(pr-review): 修复数据库事务处理
 1. 回复已发送，请查看 PR 讨论
 2. 2 个评论需要进一步澄清，已在 PR 中提问
 3. 建议手动检查跳过的评论
-```
 
 ### 2. 持久化报告文件
 
@@ -200,13 +197,10 @@ def456a fix(pr-review): 修复数据库事务处理
 
 ### 7.2 Git Log
 
-```
-
+```text
 abc123d (HEAD) fix(pr-review): 添加 token 过期检查
 def456a fix(pr-review): 修复数据库事务处理
 ghi789b fix(pr-review): 更新 API 响应格式
-
-```
 ```
 
 ## 执行步骤

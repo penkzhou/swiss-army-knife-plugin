@@ -1,7 +1,7 @@
 ---
 description: 处理 PR 中的 Code Review 评论（8 阶段流程，Phase 0-7）
 argument-hint: "<PR_NUMBER> [--dry-run] [--priority=P0,P1,P2] [--auto-reply]"
-allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWrite", "AskUserQuestion"]
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, TodoWrite, AskUserQuestion
 ---
 
 # Fix PR Review Workflow v1.0
@@ -131,7 +131,7 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
    - **停止**并报告 "所有评论均在最后 commit 之前，已过时"
 3. 展示过滤摘要：
 
-   ```
+   ```text
    评论过滤结果：
    - 总评论: {total_input}
    - 有效评论: {valid}
@@ -170,7 +170,7 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 
 使用 TodoWrite 记录所有待处理评论：
 
-```
+```javascript
 TodoWrite([
   { content: "[P0] 评论 #rc_123456: {描述}", status: "pending", activeForm: "处理 P0 评论中" },
   { content: "[P1] 评论 #rc_234567: {描述}", status: "pending", activeForm: "处理 P1 评论中" },
@@ -180,7 +180,7 @@ TodoWrite([
 
 ### 3.4 展示分类摘要
 
-```
+```text
 评论分类结果：
 - 总计: {total}
 - 可操作: {actionable}
@@ -246,7 +246,7 @@ comments_to_process = [
 
 ### 4.4 展示修复摘要
 
-```
+```text
 修复执行结果：
 - 已修复: {fixed}
 - 跳过: {skipped}
@@ -324,7 +324,7 @@ comments_to_process = [
 
 ### 6.4 展示提交结果
 
-```
+```text
 回复提交结果：
 - 已提交: {submitted}
 - 失败: {failed}
@@ -412,7 +412,7 @@ comments_to_process = [
 
 ### 基本用法
 
-```
+```bash
 /fix-pr-review 123
 ```
 
@@ -420,7 +420,7 @@ comments_to_process = [
 
 ### Dry Run 模式
 
-```
+```bash
 /fix-pr-review 123 --dry-run
 ```
 
@@ -428,7 +428,7 @@ comments_to_process = [
 
 ### 指定优先级
 
-```
+```bash
 /fix-pr-review 123 --priority=P0,P1,P2
 ```
 
@@ -436,7 +436,7 @@ comments_to_process = [
 
 ### 禁用自动回复
 
-```
+```bash
 /fix-pr-review 123 --auto-reply=false
 ```
 
