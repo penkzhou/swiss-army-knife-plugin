@@ -106,6 +106,7 @@ gh api repos/{owner}/{repo} --jq '.permissions'
 ```
 
 **输出解析**：
+
 ```json
 {
   "admin": false,
@@ -119,8 +120,10 @@ gh api repos/{owner}/{repo} --jq '.permissions'
 **权限要求**：至少需要 `push: true` 或 `triage: true` 才能提交评论回复。
 
 **失败处理**：
+
 - 如果 `push` 和 `triage` 都为 `false`：**停止**
 - 输出：
+
   ```json
   {
     "error": "INSUFFICIENT_PERMISSIONS",
@@ -142,6 +145,7 @@ gh pr view <PR_NUMBER> --json number,title,author,headRefName,baseRefName,url,st
 ```
 
 **输出解析**：
+
 - `number`: PR 编号
 - `title`: PR 标题
 - `author.login`: 作者用户名
@@ -151,6 +155,7 @@ gh pr view <PR_NUMBER> --json number,title,author,headRefName,baseRefName,url,st
 - `state`: PR 状态（OPEN/CLOSED/MERGED）
 
 **失败处理**：
+
 - 404 错误：**停止**，报告 "PR #{number} 不存在"
 - 权限错误：**停止**，报告 "无权限访问此 PR"
 
@@ -161,11 +166,13 @@ gh pr view <PR_NUMBER> --json commits --jq '.commits[-1]'
 ```
 
 **输出解析**：
+
 - `oid`: commit SHA
 - `messageHeadline`: commit 消息
 - `authoredDate`: commit 时间戳
 
 **备用方案**：如果上述命令失败，使用：
+
 ```bash
 gh api repos/{owner}/{repo}/pulls/<PR_NUMBER>/commits --jq '.[-1]'
 ```
@@ -175,6 +182,7 @@ gh api repos/{owner}/{repo}/pulls/<PR_NUMBER>/commits --jq '.[-1]'
 #### 3.1 定位插件根目录
 
 使用 Glob 工具找到插件根目录：
+
 ```bash
 glob **/.claude-plugin/plugin.json
 ```
@@ -194,6 +202,7 @@ read .claude/swiss-army-knife.yaml
 ```
 
 **处理逻辑**：
+
 1. **如果不存在**：使用默认配置（这是正常情况）
 2. **如果存在**：
    a. 验证 YAML 格式，**格式错误则警告**并使用默认配置
@@ -213,6 +222,7 @@ gh repo view --json owner,name --jq '"\(.owner.login)/\(.name)"'
 - **检测**：`gh --version` 失败
 - **行为**：**停止**
 - **输出**：
+
   ```json
   {
     "error": "GH_CLI_UNAVAILABLE",
@@ -226,6 +236,7 @@ gh repo view --json owner,name --jq '"\(.owner.login)/\(.name)"'
 - **检测**：`gh auth status` 返回未认证
 - **行为**：**停止**
 - **输出**：
+
   ```json
   {
     "error": "GH_NOT_AUTHENTICATED",
@@ -239,6 +250,7 @@ gh repo view --json owner,name --jq '"\(.owner.login)/\(.name)"'
 - **检测**：`gh api repos/{owner}/{repo}` 返回的 permissions 中 `push` 和 `triage` 都为 `false`
 - **行为**：**停止**
 - **输出**：
+
   ```json
   {
     "error": "INSUFFICIENT_PERMISSIONS",
@@ -248,6 +260,7 @@ gh repo view --json owner,name --jq '"\(.owner.login)/\(.name)"'
     "suggestion": "请联系仓库管理员获取适当权限，或以具有写入权限的账户运行"
   }
   ```
+
 - **原因**：提前检查避免在 Phase 6 才发现无法提交回复
 
 ### E3: PR 不存在
@@ -255,6 +268,7 @@ gh repo view --json owner,name --jq '"\(.owner.login)/\(.name)"'
 - **检测**：`gh pr view` 返回 404
 - **行为**：**停止**
 - **输出**：
+
   ```json
   {
     "error": "PR_NOT_FOUND",
@@ -280,6 +294,7 @@ gh repo view --json owner,name --jq '"\(.owner.login)/\(.name)"'
 - **检测**：项目配置 `.claude/swiss-army-knife.yaml` 存在但 YAML 解析失败或字段类型错误
 - **行为**：**警告**，回退到默认配置
 - **输出**：
+
   ```json
   {
     "warnings": [
@@ -293,6 +308,7 @@ gh repo view --json owner,name --jq '"\(.owner.login)/\(.name)"'
     ]
   }
   ```
+
 - **继续执行**：使用默认配置继续，不影响工作流
 
 ## 注意事项

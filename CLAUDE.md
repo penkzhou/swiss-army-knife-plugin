@@ -31,6 +31,7 @@ swiss-army-knife-plugin/
 标准化 6 阶段 bugfix 工作流插件，支持多技术栈（后端、E2E，前端计划中）。
 
 **主要命令：**
+
 - `/fix-backend` - 后端 bugfix 工作流
 - `/fix-e2e` - E2E 测试 bugfix 工作流
 

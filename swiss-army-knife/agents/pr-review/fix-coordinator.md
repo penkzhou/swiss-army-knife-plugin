@@ -123,6 +123,7 @@ skills: pr-review-analysis
 ### 1. 接收输入
 
 从 Phase 3 (comment-classifier) 接收：
+
 - `classified_comments`: 分类后的评论
 - `config`: 配置信息
 

@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 项目概述
 
 这是一个 Claude Code 插件，实现了：
+
 1. **标准化 6 阶段 bugfix 工作流**：支持多技术栈（后端、端到端、前端），通过 `/fix-backend`、`/fix-e2e`、`/fix-frontend` 命令协调
 2. **PR Code Review 处理工作流**：8 阶段流程 (Phase 0-7)，通过 `/fix-pr-review` 命令自动分析和修复 PR 中的代码审查评论
 
@@ -99,6 +100,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **<40**：极低置信度，跳过并回复 reviewer
 
 置信度基于 4 个加权因素计算：
+
 - 明确性 (Clarity) - 40%：评论是否清晰指出问题
 - 具体性 (Specificity) - 30%：是否有具体示例或测试场景
 - 上下文 (Context) - 20%：是否理解代码上下文和影响
@@ -144,6 +146,7 @@ allowed-tools: ["Read", "Write", "Task"]
 ### 最佳实践参考
 
 开发 Claude Code 插件时，请参考官方文档：
+
 - **[Claude Code 插件文档](https://code.claude.com/docs/en/plugins)**：完整的插件开发指南，包含 API 参考、架构模式和最佳实践
 - **[插件 API 参考](https://code.claude.com/docs/en/plugins-reference)**：插件组件的详细规范，包括 commands、agents、skills、hooks 的 frontmatter 字段定义
 - **[斜杠命令指南](https://code.claude.com/docs/en/slash-commands)**：自定义斜杠命令的创建和使用，包含 frontmatter 配置和动态参数

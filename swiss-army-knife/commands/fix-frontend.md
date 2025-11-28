@@ -35,6 +35,7 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 **跳过 Phase 时的验证**：
 
 如果指定 `--phase=N`（N > 0），检查是否存在前置 Phase 的输出：
+
 - **不存在前置输出**：报错 "Phase N 依赖 Phase M 输出，请先运行 --phase=0,...,M 或使用 --phase=all"
 - **存在前置输出**：继续执行
 
@@ -49,11 +50,13 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 > 使用 frontend-init-collector agent 初始化 bugfix 工作流：
 >
 > ## 任务
+>
 > 1. 加载配置（defaults.yaml + 项目配置深度合并）
 > 2. 收集测试失败输出（如果用户未提供）
 > 3. 收集项目信息（Git 状态、目录结构、依赖信息、组件结构）
 >
 > ## 用户提供的测试输出（如有）
+>
 > [如果用户提供了测试输出，粘贴在这里；否则留空让 agent 自动运行测试]
 
 ### 0.2 验证 init-collector 输出
@@ -69,11 +72,13 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
    - `project_info.plugin_root` 存在
 3. **警告展示**：
    - 如果 `warnings` 数组存在且非空，**立即向用户展示所有警告**：
+
      ```
      ⚠️ 初始化警告：
      - [{code}] {message}
        影响：{impact}
      ```
+
    - 如果任何警告的 `critical: true`，暂停询问用户是否继续
 4. **失败处理**：
    - 格式无效：**停止**，报告 "Init collector 输出格式无效"
@@ -101,12 +106,14 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 | 包管理器 | `init_ctx["project_info"]["package_manager"]` |
 
 **init_ctx 持久化**：
+
 - `init_ctx` 存储在当前会话内存中
 - 跨会话恢复时需重新运行 Phase 0
 - 使用 `--phase=N`（N > 0）跳过时，系统会验证 init_ctx 是否存在
 
 **可选字段防护**：
 构建 agent prompt 时，检查可选字段是否为 `null`：
+
 - 如果 `init_ctx["project_info"]["git"]` 为 `null`：使用 "(Git 信息不可用)" 替代 git 相关字段
 - 在 prompt 中明确标注哪些信息因不可用而缺失
 
@@ -117,13 +124,16 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 > 使用 frontend-error-analyzer agent 分析以下测试失败输出，完成错误解析、分类、历史匹配和文档匹配。
 >
 > ## 测试输出
+>
 > [从 init_ctx["test_output"]["raw"] 获取]
 >
 > ## 项目路径
+>
 > - bugfix 文档: [从 init_ctx["config"]["docs"]["bugfix_dir"] 获取]
 > - troubleshooting: [从 init_ctx["config"]["docs"]["best_practices_dir"] 获取]/troubleshooting.md
 >
 > ## 项目上下文（供参考）
+>
 > - Git 变更文件: [如果 init_ctx["project_info"]["git"] 非 null，从 modified_files 获取；否则填 "(Git 信息不可用)"]
 > - 最近 commit: [如果 init_ctx["project_info"]["git"] 非 null，从 last_commit 获取；否则填 "(Git 信息不可用)"]
 > - 测试框架: [从 init_ctx["project_info"]["test_framework"] 获取]
@@ -163,15 +173,19 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 > 使用 frontend-root-cause agent 进行根因分析：
 >
 > ## 结构化错误
+>
 > [Phase 0 error-analyzer 的输出]
 >
 > ## 相关代码
+>
 > [使用 Read 获取的相关代码]
 >
 > ## 参考诊断文档
+>
 > [从 init_ctx["config"]["docs"]["best_practices_dir"] 获取]/troubleshooting.md
 >
 > ## 项目上下文（供参考）
+>
 > - Git 变更文件: [如果 init_ctx["project_info"]["git"] 非 null，从 modified_files 获取；否则填 "(Git 信息不可用)"]
 > - 最近 commit: [如果 init_ctx["project_info"]["git"] 非 null，从 last_commit 获取；否则填 "(Git 信息不可用)"]
 > - 测试框架: [从 init_ctx["project_info"]["test_framework"] 获取]
@@ -197,6 +211,7 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 2. 检查范围 0-100
 
 **无效分数处理**：
+
 - 分数缺失：**停止**，报告 "Root-cause agent 未返回置信度分数"
 - 非数字：**停止**，报告 "置信度分数格式无效"
 - 超出范围（<0 或 >100）：**停止**，报告 "置信度分数超出有效范围 (0-100)"
@@ -220,9 +235,11 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 > 使用 frontend-solution agent 设计修复方案：
 >
 > ## 根因分析
+>
 > [Phase 1 root-cause 的输出]
 >
 > ## 参考最佳实践
+>
 > - [从 init_ctx["config"]["docs"]["best_practices_dir"] 获取]/README.md
 > - [从 init_ctx["config"]["docs"]["best_practices_dir"] 获取]/implementation-guide.md
 
@@ -249,7 +266,7 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 
 文档模板：
 
-```markdown
+````markdown
 # [问题描述] Bugfix 报告
 
 > 日期：{date}
@@ -299,7 +316,8 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 - [ ] 单元测试通过
 - [ ] 覆盖率 >= 90%
 - [ ] 无回归
-```
+
+````
 
 ### 3.2 等待用户确认
 

@@ -96,6 +96,7 @@ gh api repos/{owner}/{repo}/pulls/{pr_number}/comments --paginate
 ```
 
 **字段映射**：
+
 | API 字段 | 输出字段 |
 |---------|---------|
 | `id` | `id`（添加 `rc_` 前缀）|
@@ -121,6 +122,7 @@ gh api repos/{owner}/{repo}/issues/{pr_number}/comments --paginate
 ```
 
 **字段映射**：
+
 | API 字段 | 输出字段 |
 |---------|---------|
 | `id` | `id`（添加 `ic_` 前缀）|
@@ -131,6 +133,7 @@ gh api repos/{owner}/{repo}/issues/{pr_number}/comments --paginate
 | `html_url` | `html_url` |
 
 对于 Issue Comments，设置：
+
 - `type`: `"issue_comment"`
 - `location`: `null`
 - `in_reply_to_id`: `null`
@@ -148,6 +151,7 @@ gh api repos/{owner}/{repo}/issues/{pr_number}/comments --paginate
 ### 4. 生成摘要
 
 计算统计信息：
+
 - `total`: 总评论数
 - `review_comments`: 代码行评论数
 - `issue_comments`: PR 级评论数
@@ -163,6 +167,7 @@ gh api repos/{owner}/{repo}/issues/{pr_number}/comments --paginate
 改为基于内容模式识别自动生成的无 review 价值的评论：
 
 **排除的内容模式**：
+
 ```python
 ci_report_patterns = [
     # 覆盖率报告
@@ -197,6 +202,7 @@ def is_ci_report(body):
 ```
 
 **保留的评论**（即使来自 bot 用户名）：
+
 - 包含具体代码建议的评论
 - 引用特定文件/行号的评论
 - 包含改进意见或问题描述的评论
@@ -213,6 +219,7 @@ def is_ci_report(body):
 - **检测**：HTTP 403 + `X-RateLimit-Remaining: 0`
 - **行为**：返回 `PARTIAL_SUCCESS` 状态，**必须**明确标记数据不完整
 - **输出**：
+
   ```json
   {
     "status": "PARTIAL_SUCCESS",
@@ -226,6 +233,7 @@ def is_ci_report(body):
     "summary": {...}
   }
   ```
+
 - **流程控制**：主控制器收到 `PARTIAL_SUCCESS` 后，**必须**询问用户是否继续处理不完整数据
 
 ### E2: 网络错误
@@ -233,6 +241,7 @@ def is_ci_report(body):
 - **检测**：连接超时或网络错误
 - **行为**：重试 3 次，失败后报告错误
 - **输出**：
+
   ```json
   {
     "error": "NETWORK_ERROR",
@@ -246,6 +255,7 @@ def is_ci_report(body):
 - **检测**：两个 API 都返回空数组
 - **行为**：返回空结果（这是正常情况）
 - **输出**：
+
   ```json
   {
     "comments": [],

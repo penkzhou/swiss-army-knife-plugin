@@ -26,6 +26,7 @@ tools: Read
 **目标**：只保留在最后一次 commit **之后**产生的评论。
 
 **逻辑**：
+
 ```python
 def is_valid_by_time(comment, last_commit_timestamp):
     # 评论创建时间 > 最后 commit 时间
@@ -44,6 +45,7 @@ def is_valid_by_time(comment, last_commit_timestamp):
 **目标**：排除已明确标记为解决的评论。
 
 **检测条件**（满足任一）：
+
 1. 评论线程中有回复包含以下关键词：
    - `fixed`, `done`, `resolved`, `addressed`
    - `已修复`, `已解决`, `已处理`
@@ -56,12 +58,14 @@ def is_valid_by_time(comment, last_commit_timestamp):
 **注意**：不基于用户名过滤，因为 Claude 等有价值的 code review 工具也使用 `github-actions` 用户名。
 
 **检测条件**（基于内容模式）：
+
 - 覆盖率报告：`Coverage Report`, `XX% coverage`
 - CI 状态报告：`All checks passed`, `Build succeeded/failed`
 - 依赖更新通知：`Bumps xxx from x.x to y.y`, `Dependabot`, `Renovate`
 - 自动合并通知：`Auto-merge`, `automatically merged`
 
 **保留的评论**（即使来自 bot 用户名）：
+
 - 包含具体代码建议的评论
 - 引用特定文件/行号的评论
 - 有实际 code review 价值的评论
@@ -71,6 +75,7 @@ def is_valid_by_time(comment, last_commit_timestamp):
 **目标**：排除无实际内容的评论。
 
 **检测条件**：
+
 - `body` 为空或仅包含空白字符
 - `body` 长度 < 5 字符
 
@@ -125,6 +130,7 @@ def is_valid_by_time(comment, last_commit_timestamp):
 ### 1. 接收输入
 
 从 Phase 1 (comment-fetcher) 接收：
+
 - `comments`: 所有评论列表
 - `last_commit_timestamp`: 最后 commit 的时间戳
 
@@ -211,6 +217,7 @@ def is_ci_report(body):
 ### 时区处理
 
 所有时间比较使用 UTC 时区：
+
 - GitHub API 返回的时间已是 UTC
 - 确保 `last_commit_timestamp` 也是 UTC
 
@@ -235,6 +242,7 @@ def is_ci_report(body):
   - 如果 > 20% 的评论时间解析失败：**停止**并报告数据质量问题
   - 如果 <= 20%：继续，但在摘要中明确展示
 - **输出**：
+
   ```json
   {
     "time_parse_failures": [
@@ -248,6 +256,7 @@ def is_ci_report(body):
     "warning": "有 {count} 条评论无法验证时效性，已标记为 time_unknown"
   }
   ```
+
 - **用户决策**：`time_unknown` 评论需要用户确认是否处理
 
 ### E2: 无有效评论
@@ -255,6 +264,7 @@ def is_ci_report(body):
 - **检测**：过滤后 `valid_comments` 为空
 - **行为**：返回空结果（这是正常情况）
 - **输出**：
+
   ```json
   {
     "valid_comments": [],

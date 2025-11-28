@@ -77,6 +77,7 @@ gh api repos/{owner}/{repo}/issues/{pr_number}/comments \
 ### 1. 接收输入
 
 从 Phase 5 (response-generator) 接收：
+
 - `responses`: 生成的回复列表
 - `pr_info`: PR 信息（用于构建 API URL）
 - `dry_run`: 是否为演练模式
@@ -84,6 +85,7 @@ gh api repos/{owner}/{repo}/issues/{pr_number}/comments \
 ### 2. 检查 Dry Run 模式
 
 如果 `dry_run: true`：
+
 - 不实际提交
 - 输出将提交的内容预览
 - 所有结果标记为 `status: "skipped"`
@@ -129,6 +131,7 @@ gh api repos/{owner}/{repo}/pulls/comments/{original_id}/replies \
 ```
 
 **响应解析**：
+
 - `id`: 新回复的 ID
 - `html_url`: 回复的 URL
 - `created_at`: 提交时间
@@ -150,6 +153,7 @@ gh api rate_limit --jq '.resources.core | {remaining, reset}'
 ```
 
 如果 `remaining < 10`：
+
 1. 计算等待时间：`reset - now()`
 2. 如果等待时间 < 5 分钟：等待后继续
 3. 如果等待时间 > 5 分钟：返回部分结果，标记剩余为 `rate_limited`
@@ -169,11 +173,13 @@ def submit_with_retry(fn, max_retries=3):
 ```
 
 可重试的错误：
+
 - 网络超时
 - HTTP 500/502/503
 - 连接重置
 
 不可重试的错误：
+
 - HTTP 401/403（认证/权限）
 - HTTP 404（评论不存在）
 - HTTP 422（请求格式错误）
@@ -226,17 +232,21 @@ def submit_with_retry(fn, max_retries=3):
 
 ### 评论 rc_123456 → 已修复
 ```
+
 ✅ 已修复
 
 感谢指出！已在 `abc123d` 中完成修复。
 ...
+
 ```
 
 ### 评论 rc_234567 → 需要澄清
 ```
+
 ⏸️ 需要更多信息
 
 感谢建议！为了更好地理解您的意图...
+
 ```
 
 ---

@@ -38,12 +38,14 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 > 使用 pr-review-init-collector agent 初始化 PR Review 工作流：
 >
 > ## 任务
+>
 > 1. 验证 GitHub CLI 可用性
 > 2. 获取 PR #{PR_NUMBER} 元信息
 > 3. 获取最后一次 commit 信息
 > 4. 加载配置
 >
 > ## PR 编号
+>
 > {PR_NUMBER}
 
 ### 0.2 验证 init-collector 输出
@@ -88,10 +90,12 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 > 使用 pr-review-comment-fetcher agent 获取 PR 评论：
 >
 > ## PR 信息
+>
 > - 编号: {init_ctx["pr_info"]["number"]}
 > - 仓库: {init_ctx["project_info"]["repo"]}
 >
 > ## 任务
+>
 > 获取所有 review comments 和 issue comments
 
 ### 1.2 验证输出
@@ -111,9 +115,11 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 > 使用 pr-review-comment-filter agent 过滤评论：
 >
 > ## 评论列表
+>
 > [Phase 1 的 comments 输出]
 >
 > ## 过滤条件
+>
 > - 最后 commit 时间: {init_ctx["pr_info"]["last_commit"]["timestamp"]}
 > - 排除 Bot 评论: true
 > - 排除已解决评论: true
@@ -124,6 +130,7 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 2. 如果为空：
    - **停止**并报告 "所有评论均在最后 commit 之前，已过时"
 3. 展示过滤摘要：
+
    ```
    评论过滤结果：
    - 总评论: {total_input}
@@ -145,9 +152,11 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 > 使用 pr-review-comment-classifier agent 分类评论：
 >
 > ## 有效评论
+>
 > [Phase 2 的 valid_comments 输出]
 >
 > ## 配置
+>
 > - 置信度阈值: {init_ctx["config"]["confidence_threshold"]}
 > - 技术栈路径模式: {init_ctx["config"]["stack_path_patterns"]}
 > - 分类关键词: {init_ctx["config"]["classification_keywords"]}
@@ -201,6 +210,7 @@ comments_to_process = [
 ### 4.1 检查 dry-run 模式
 
 如果 `--dry-run`：
+
 - 跳过实际修复
 - 只展示将要执行的操作
 - 跳到 Phase 6
@@ -212,13 +222,16 @@ comments_to_process = [
 > 使用 pr-review-fix-coordinator agent 协调修复：
 >
 > ## 待处理评论
+>
 > [Phase 3 过滤后的评论]
 >
 > ## 配置
+>
 > - 置信度阈值: {init_ctx["config"]["confidence_threshold"]}
 > - 优先级配置: {init_ctx["config"]["priority"]}
 >
 > ## 处理要求
+>
 > 1. 按优先级顺序处理 (P0 → P1 → P2)
 > 2. 高置信度 (>=80) 自动修复
 > 3. 中置信度 (60-79) 询问用户
@@ -255,12 +268,15 @@ comments_to_process = [
 > 使用 pr-review-response-generator agent 生成回复：
 >
 > ## 修复结果
+>
 > [Phase 4 的 fix_results 输出]
 >
 > ## 原始评论
+>
 > [Phase 3 的 classified_comments]
 >
 > ## 回复模板
+>
 > {init_ctx["config"]["response_templates"]}
 
 ### 5.2 验证输出
@@ -275,6 +291,7 @@ comments_to_process = [
 ### 6.1 检查 dry-run 模式
 
 如果 `--dry-run`：
+
 - 展示将要提交的回复预览
 - 跳过实际提交
 - 跳到 Phase 7
@@ -282,6 +299,7 @@ comments_to_process = [
 ### 6.2 检查 auto-reply 参数
 
 如果 `--auto-reply=false` 或未设置且非交互模式：
+
 - 询问用户是否提交回复
 - 用户拒绝则跳过
 
@@ -292,13 +310,16 @@ comments_to_process = [
 > 使用 pr-review-response-submitter agent 提交回复：
 >
 > ## 回复列表
+>
 > [Phase 5 的 responses 输出]
 >
 > ## PR 信息
+>
 > - 编号: {init_ctx["pr_info"]["number"]}
 > - 仓库: {init_ctx["project_info"]["repo"]}
 >
 > ## 模式
+>
 > - dry_run: {dry_run}
 
 ### 6.4 展示提交结果
@@ -324,6 +345,7 @@ comments_to_process = [
 > 使用 pr-review-summary-reporter agent 生成报告：
 >
 > ## 所有阶段输出
+>
 > - Phase 0: {init_ctx}
 > - Phase 1: {comments}
 > - Phase 2: {filtered_comments}
@@ -333,6 +355,7 @@ comments_to_process = [
 > - Phase 6: {submission_results}
 >
 > ## 报告配置
+>
 > - 报告目录: {init_ctx["config"]["docs"]["review_reports_dir"]}
 
 ### 7.2 展示最终报告

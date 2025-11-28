@@ -84,12 +84,14 @@ version: "1.0.0"
 #### P0 (Blocker) 关键词
 
 **安全相关**（自动升级 2 个优先级）：
+
 - `security`, `vulnerability`, `injection`
 - `XSS`, `CSRF`, `leak`, `exposed`
 - `sensitive`, `password`, `token`, `secret`
 - `安全`, `漏洞`, `泄露`, `暴露`
 
 **关键缺陷**：
+
 - `crash`, `data loss`, `downtime`
 - `blocker`, `production`, `urgent`
 - `崩溃`, `数据丢失`, `紧急`, `阻塞`
@@ -295,6 +297,7 @@ patterns:
 ### 6.1 过滤规则
 
 **有效评论条件**：
+
 - 评论创建时间 > 最后 commit 时间
 - 或评论更新时间 > 最后 commit 时间（有新回复）
 

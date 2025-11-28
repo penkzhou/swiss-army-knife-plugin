@@ -138,6 +138,7 @@ skills: pr-review-analysis
 ### 1. 接收输入
 
 从 Phase 4 (fix-coordinator) 接收：
+
 - `fix_results`: 修复结果列表
 - `classified_comments`: 原始分类评论（用于获取 reviewer 信息）
 - `config`: 配置信息（包含回复模板）
@@ -255,6 +256,7 @@ def format_test_results(fix_details):
 - **检测**：配置中没有对应模板
 - **行为**：使用默认模板
 - **默认模板**：
+
   ```markdown
   {status_emoji} {status_text}
 

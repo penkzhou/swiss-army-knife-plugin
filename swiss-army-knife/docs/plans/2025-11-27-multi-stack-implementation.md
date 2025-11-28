@@ -13,6 +13,7 @@
 ## Task 1: 创建配置系统
 
 **Files:**
+
 - Create: `swiss-army-knife/config/defaults.yaml`
 
 **Step 1: 创建 config 目录**
@@ -110,6 +111,7 @@ git commit -m "feat: add multi-stack default configuration"
 ## Task 2: 创建 frontend agent 目录结构
 
 **Files:**
+
 - Create: `swiss-army-knife/agents/frontend/` 目录
 - Move: `agents/*.md` → `agents/frontend/*.md`
 
@@ -120,6 +122,7 @@ Run: `mkdir -p swiss-army-knife/agents/frontend`
 **Step 2: 移动现有 agent 文件**
 
 Run:
+
 ```bash
 cd swiss-army-knife && \
 mv agents/error-analyzer.md agents/frontend/ && \
@@ -147,6 +150,7 @@ git commit -m "refactor: move agents to frontend subdirectory"
 ## Task 3: 创建 backend/e2e 占位 agent
 
 **Files:**
+
 - Create: `swiss-army-knife/agents/backend/error-analyzer.md`
 - Create: `swiss-army-knife/agents/backend/root-cause.md`
 - Create: `swiss-army-knife/agents/e2e/error-analyzer.md`
@@ -204,6 +208,7 @@ whenToUse: |
 - **Read**: 读取测试文件和源代码
 - **Glob**: 搜索历史文档
 - **Grep**: 搜索特定错误模式
+
 ```
 
 **Step 3: 创建 backend root-cause 占位**
@@ -246,6 +251,7 @@ whenToUse: |
   "suggested_fix": "修复建议"
 }
 ```
+
 ```
 
 **Step 4: 创建 e2e error-analyzer 占位**
@@ -290,6 +296,7 @@ whenToUse: |
   "troubleshoot_matches": [...]
 }
 ```
+
 ```
 
 **Step 5: 创建 e2e root-cause 占位**
@@ -332,6 +339,7 @@ whenToUse: |
   "suggested_fix": "修复建议"
 }
 ```
+
 ```
 
 **Step 6: 验证文件创建**
@@ -351,6 +359,7 @@ git commit -m "feat: add backend and e2e placeholder agents"
 ## Task 4: 更新 frontend agent 移除硬编码路径
 
 **Files:**
+
 - Modify: `swiss-army-knife/agents/frontend/error-analyzer.md`
 - Modify: `swiss-army-knife/agents/frontend/knowledge.md`
 
@@ -359,21 +368,25 @@ git commit -m "feat: add backend and e2e placeholder agents"
 将硬编码路径改为配置占位符说明。找到并替换以下内容：
 
 原文：
+
 ```markdown
 - 在 docs/bugfix/ 目录搜索相似案例
 ```
 
 改为：
+
 ```markdown
 - 在配置指定的 bugfix_dir 目录搜索相似案例（由 Command 通过 prompt 注入）
 ```
 
 原文：
+
 ```markdown
 | mock_conflict | troubleshooting.md#陷阱-1-过度依赖单元测试 |
 ```
 
 改为：
+
 ```markdown
 | mock_conflict | 搜索 best_practices_dir 中包含 "mock" 关键词的文档 |
 ```
@@ -383,6 +396,7 @@ git commit -m "feat: add backend and e2e placeholder agents"
 找到并替换以下内容：
 
 原文：
+
 ```markdown
 ## 文档存储位置
 
@@ -392,6 +406,7 @@ git commit -m "feat: add backend and e2e placeholder agents"
 ```
 
 改为：
+
 ```markdown
 ## 文档存储位置
 
@@ -420,6 +435,7 @@ git commit -m "refactor: remove hardcoded paths from frontend agents"
 ## Task 5: 重命名 fix.md 为 fix-frontend.md 并更新
 
 **Files:**
+
 - Rename: `commands/fix.md` → `commands/fix-frontend.md`
 - Modify: 更新内容支持配置加载
 
@@ -430,6 +446,7 @@ Run: `mv swiss-army-knife/commands/fix.md swiss-army-knife/commands/fix-frontend
 **Step 2: 更新 frontmatter**
 
 将文件开头的 frontmatter 从：
+
 ```yaml
 ---
 description: 执行标准化前端 Bugfix 工作流（六阶段流程）
@@ -439,6 +456,7 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 ```
 
 改为：
+
 ```yaml
 ---
 description: 执行标准化 Frontend Bugfix 工作流（六阶段流程）
@@ -481,6 +499,7 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 将所有 `subagent_type: "swiss-army-knife-plugin:error-analyzer"` 改为 `subagent_type: "swiss-army-knife:frontend-error-analyzer"`
 
 类似地更新其他 agent 引用：
+
 - `root-cause` → `frontend-root-cause`
 - `solution` → `frontend-solution`
 - `executor` → `frontend-executor`
@@ -490,11 +509,13 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 **Step 5: 更新硬编码命令**
 
 将：
+
 ```bash
 make test TARGET=frontend 2>&1 | head -200
 ```
 
 改为：
+
 ```bash
 ${config.test_command} 2>&1 | head -200
 ```
@@ -516,6 +537,7 @@ git commit -m "refactor: rename fix to fix-frontend with config support"
 ## Task 6: 创建 fix-backend.md 和 fix-e2e.md 命令
 
 **Files:**
+
 - Create: `swiss-army-knife/commands/fix-backend.md`
 - Create: `swiss-army-knife/commands/fix-e2e.md`
 
@@ -574,6 +596,7 @@ prompt: |
 后续阶段参考 fix-frontend.md 实现，使用 backend-* agent。
 
 当前仅支持 Phase 0 错误分析。
+
 ```
 
 **Step 2: 创建 fix-e2e.md**
@@ -631,6 +654,7 @@ prompt: |
 后续阶段参考 fix-frontend.md 实现，使用 e2e-* agent。
 
 当前仅支持 Phase 0 错误分析。
+
 ```
 
 **Step 3: 验证文件创建**
@@ -650,6 +674,7 @@ git commit -m "feat: add fix-backend and fix-e2e placeholder commands"
 ## Task 7: 重命名 skill 目录
 
 **Files:**
+
 - Rename: `skills/bugfix-workflow/` → `skills/frontend-bugfix/`
 - Create: `skills/backend-bugfix/SKILL.md` (占位)
 - Create: `skills/e2e-bugfix/SKILL.md` (占位)
@@ -750,6 +775,7 @@ git commit -m "refactor: rename bugfix-workflow to frontend-bugfix, add placehol
 ## Task 8: 更新 plugin.json
 
 **Files:**
+
 - Modify: `swiss-army-knife/.claude-plugin/plugin.json`
 
 **Step 1: 更新 plugin.json 内容**
@@ -784,6 +810,7 @@ git commit -m "chore: bump version to 0.3.0, update description"
 ## Task 9: 更新 README.md 添加配置说明
 
 **Files:**
+
 - Modify: `swiss-army-knife/README.md`
 
 **Step 1: 更新 README 内容**
@@ -827,6 +854,7 @@ stacks:
 | `/fix-frontend` | Frontend bugfix 工作流 | ✅ 完整 |
 | `/fix-backend` | Backend bugfix 工作流 | 🔧 占位 |
 | `/fix-e2e` | E2E bugfix 工作流 | 🔧 占位 |
+
 ```
 
 **Step 2: Commit**
@@ -841,6 +869,7 @@ git commit -m "docs: add configuration documentation to README"
 ## Task 10: 更新 CLAUDE.md
 
 **Files:**
+
 - Modify: `swiss-army-knife/CLAUDE.md`
 
 **Step 1: 更新架构描述**
@@ -850,6 +879,7 @@ git commit -m "docs: add configuration documentation to README"
 **Step 2: 更新目标项目假设**
 
 将：
+
 ```markdown
 ### 目标项目假设
 
@@ -859,6 +889,7 @@ git commit -m "docs: add configuration documentation to README"
 ```
 
 改为：
+
 ```markdown
 ### 目标项目假设
 
@@ -881,6 +912,7 @@ git commit -m "docs: update CLAUDE.md for multi-stack architecture"
 ## Task 11: 更新 CHANGELOG.md
 
 **Files:**
+
 - Modify: `swiss-army-knife/CHANGELOG.md`
 
 **Step 1: 添加 v0.3.0 变更记录**
@@ -922,6 +954,7 @@ git commit -m "docs: add v0.3.0 changelog"
 Run: `find swiss-army-knife -type f -name "*.md" -o -name "*.yaml" -o -name "*.json" | sort`
 
 Expected 结构：
+
 ```
 swiss-army-knife/.claude-plugin/plugin.json
 swiss-army-knife/agents/backend/error-analyzer.md

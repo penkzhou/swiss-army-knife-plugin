@@ -66,9 +66,11 @@ tools: Write, Read
 ## Git 提交
 
 ```
+
 abc123d fix(pr-review): 添加 token 过期检查
 def456a fix(pr-review): 修复数据库事务处理
 ...
+
 ```
 
 ## 下一步
@@ -199,9 +201,11 @@ def456a fix(pr-review): 修复数据库事务处理
 ### 7.2 Git Log
 
 ```
+
 abc123d (HEAD) fix(pr-review): 添加 token 过期检查
 def456a fix(pr-review): 修复数据库事务处理
 ghi789b fix(pr-review): 更新 API 响应格式
+
 ```
 ```
 
@@ -210,6 +214,7 @@ ghi789b fix(pr-review): 更新 API 响应格式
 ### 1. 接收输入
 
 汇总所有前置 Phase 的输出：
+
 - Phase 0: `pr_info`
 - Phase 1: `comments` (原始评论)
 - Phase 2: `filtered_comments`
@@ -255,6 +260,7 @@ Write(report_path, full_report)
 ### 使用表格
 
 适合对比和列表数据：
+
 ```markdown
 | 字段 | 值 |
 |------|-----|
@@ -264,6 +270,7 @@ Write(report_path, full_report)
 ### 使用 Details 折叠
 
 适合大量详细信息：
+
 ```markdown
 <details>
 <summary>展开查看</summary>
