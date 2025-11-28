@@ -1,8 +1,9 @@
 ---
 name: pr-review-fix-coordinator
-description: Use this agent to coordinate fixes for PR review comments. Dispatches to appropriate tech stack bugfix workflows and tracks fix results.
+description: Use this agent when classified PR comments are ready for fixing. Applies confidence-driven decision making (>=80 auto-fix, 60-79 ask user, <60 skip); processes by priority order (P0 individually, P1 in batches); dispatches to /fix-backend, /fix-frontend, or /fix-e2e workflows based on tech stack. Triggers in Phase 4 after comment classification.
 model: opus
 tools: Task, Read, Write, TodoWrite, AskUserQuestion
+skills: pr-review-analysis
 ---
 
 # PR Review Fix Coordinator Agent

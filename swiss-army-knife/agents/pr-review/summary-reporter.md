@@ -1,6 +1,6 @@
 ---
 name: pr-review-summary-reporter
-description: Use this agent to generate a comprehensive summary report for PR review processing. Aggregates results and creates documentation.
+description: Use this agent when all PR review phases are complete and you need to generate final reports. Creates console summary with fix statistics; writes persistent report to docs/reviews/; extracts knowledge for high-value fixes (P0/P1 with confidence >=85); aggregates results from all 7 previous phases. Triggers in Phase 7 as the final step.
 model: sonnet
 tools: Write, Read
 ---
