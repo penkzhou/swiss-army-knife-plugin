@@ -97,6 +97,38 @@ tools: Write
 
 - **Write**: 创建 Bugfix 文档
 
+## 错误处理
+
+### E1: 目录不存在
+
+- **检测**：Write 返回"directory does not exist"或类似错误
+- **行为**：
+  1. 输出错误状态，明确指出目录问题
+  2. 不尝试自动创建目录（避免权限问题）
+  3. 返回 `{"status": "failed", "error": "目录不存在: {path}", "suggestion": "请确保 bugfix_dir 路径存在"}`
+
+### E2: 权限不足
+
+- **检测**：Write 返回"permission denied"或类似错误
+- **行为**：
+  1. 输出错误状态，明确指出权限问题
+  2. 返回 `{"status": "failed", "error": "权限不足: {path}", "suggestion": "请检查文件系统权限"}`
+
+### E3: 文件已存在
+
+- **检测**：Write 可能覆盖已有文件
+- **行为**：
+  1. 检查文件名是否冲突（同一天同一 slug）
+  2. 如有冲突，追加序号（如 `-2`）
+  3. 返回实际写入的路径
+
+### E4: 其他 Write 失败
+
+- **检测**：Write 返回任何其他错误
+- **行为**：
+  1. 记录原始错误信息
+  2. 返回 `{"status": "failed", "error": "文档写入失败", "raw_error": "{error_message}"}`
+
 ## 注意事项
 
 1. **保持简洁**：只填充提供的数据，不要添加额外内容

@@ -155,15 +155,15 @@ sorted_comments = sorted(
 ```python
 for comment in p0_comments:
     if comment['classification']['confidence'] >= 80:
-        # 自动修复
-        result = dispatch_fix(comment)
+        # 自动修复（带重试）
+        result = dispatch_fix_with_retry(comment, max_retries=3)
     elif comment['classification']['confidence'] >= 60:
         # 询问用户
         user_choice = AskUserQuestion(
             f"P0 评论置信度 {confidence}%，是否修复？\n{comment['body']}"
         )
         if user_choice == 'yes':
-            result = dispatch_fix(comment)
+            result = dispatch_fix_with_retry(comment, max_retries=3)
         else:
             result = mark_user_declined(comment)
     else:
@@ -183,7 +183,7 @@ for batch in chunk(p1_comments, p1_batch_size):
     results = []
     for comment in batch:
         if comment['classification']['confidence'] >= 80:
-            result = dispatch_fix(comment)
+            result = dispatch_fix_with_retry(comment, max_retries=3)
         elif comment['classification']['confidence'] >= 60:
             # 批量询问
             results.append(comment)
@@ -209,7 +209,7 @@ if p2_p3_comments:
     if user_choice == 'yes':
         for comment in p2_p3_comments:
             if comment['classification']['confidence'] >= 80:
-                dispatch_fix(comment)
+                dispatch_fix_with_retry(comment, max_retries=3)
 ```
 
 ### 7. 调度修复（核心逻辑）
@@ -274,6 +274,49 @@ def dispatch_fix(comment):
             "comment_id": comment['id'],
             "user_action_required": True
         }
+
+
+def dispatch_fix_with_retry(comment, max_retries=3):
+    """
+    带重试逻辑的修复调度
+
+    实现 E4 错误处理：测试持续失败时最多重试指定次数
+    """
+    last_error = None
+    attempts = 0
+
+    for attempt in range(1, max_retries + 1):
+        attempts = attempt
+        result = dispatch_fix(comment)
+
+        # 检查是否成功
+        if result.get('status') == 'fixed':
+            return result
+
+        # 检查是否是测试失败（可重试）
+        if result.get('status') == 'failed':
+            error_msg = result.get('error', '')
+            # 仅对测试失败进行重试
+            if '测试' in error_msg or 'test' in error_msg.lower():
+                last_error = result
+                if attempt < max_retries:
+                    continue  # 继续重试
+            else:
+                # 非测试失败，不重试
+                return result
+
+        # 其他状态（skipped, user_declined）不重试
+        return result
+
+    # 所有重试都失败
+    return {
+        "status": "failed",
+        "error": "测试持续失败",
+        "attempts": attempts,
+        "last_error": last_error.get('error') if last_error else None,
+        "comment_id": comment['id'],
+        "user_action_required": True
+    }
 
 
 def parse_fix_result(result, comment_id):
@@ -451,10 +494,11 @@ Ref: PR #{pr_number} comment {comment_id}"
 ### E4: 测试持续失败
 
 - **检测**：修复后测试仍失败
+- **实现**：通过 `dispatch_fix_with_retry(comment, max_retries=3)` 函数
 - **行为**：
-  1. 最多重试 3 次
-  2. 记录失败原因
-  3. 标记为需要人工处理
+  1. 最多重试 3 次（自动检测测试相关错误）
+  2. 记录每次失败原因和尝试次数
+  3. 所有重试失败后标记 `status: "failed", attempts: 3, user_action_required: True`
 
 ## 注意事项
 
