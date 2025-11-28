@@ -4,11 +4,11 @@ argument-hint: "[--phase=0,1,2,3,4,5|all] [--dry-run]"
 allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWrite", "AskUserQuestion"]
 ---
 
-# Bugfix Backend Workflow v2.1
+# Bugfix Backend Workflow v2.2
 
 基于测试失败的后端用例，执行标准化 bugfix 流程。
 
-**宣布**："我正在使用 Bugfix Backend v2.1 工作流进行问题修复。"
+**宣布**："我正在使用 Bugfix Backend v2.2 工作流进行问题修复。"
 
 ---
 
@@ -40,76 +40,92 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWr
 
 ---
 
-## 配置加载
-
-### 加载步骤
-
-执行以下步骤加载配置（使用 Read 工具）：
-
-1. **读取插件默认配置**：使用 Glob 找到插件根目录，然后 Read `config/defaults.yaml`
-2. **检查项目配置**：检查 `.claude/swiss-army-knife.yaml` 是否存在
-3. **深度合并**：如存在项目配置，将其值覆盖默认配置（嵌套对象递归合并）
-4. **提取技术栈配置**：从合并后的配置中提取 `stacks.backend` 部分
-
-### 配置变量说明
-
-以下变量需要在调用 Agent 时**手动替换**到 prompt 中（非自动模板）：
-
-| 变量名 | 配置路径 | 说明 |
-| ------ | -------- | ---- |
-| `config.test_command` | `stacks.backend.test_command` | 测试命令 |
-| `config.lint_command` | `stacks.backend.lint_command` | Lint 命令 |
-| `config.typecheck_command` | `stacks.backend.typecheck_command` | 类型检查命令 |
-| `config.docs.bugfix_dir` | `stacks.backend.docs.bugfix_dir` | Bugfix 文档目录 |
-| `config.docs.best_practices_dir` | `stacks.backend.docs.best_practices_dir` | 最佳实践目录 |
-| `config.docs.search_keywords` | `stacks.backend.docs.search_keywords` | 文档搜索关键词 |
-| `config.error_patterns` | `stacks.backend.error_patterns` | 错误模式定义 |
-
-### 配置注入示例
-
-```python
-# 伪代码：展示如何将配置值注入到 Agent prompt
-config = load_and_merge_config()
-backend = config["stacks"]["backend"]
-
-# 构建实际 prompt 时替换变量
-prompt = f"""
-分析以下测试失败输出...
-
-## 项目路径
-- bugfix 文档: {backend["docs"]["bugfix_dir"]}
-- troubleshooting: {backend["docs"]["best_practices_dir"]}/troubleshooting.md
-"""
-```
-
-**注意**：本文档中的 `${config.*}` 语法是占位符标记，提示需要替换的位置。Claude 在执行时应读取配置文件并手动构建包含实际值的 prompt。
-
----
-
 ## Phase 0: 问题收集与分类
 
-### 0.1 获取测试失败输出
+### 0.1 启动 init-collector agent
 
-如果用户没有提供测试输出，运行测试获取：
+使用 Task tool 调用 backend-init-collector agent 初始化工作流上下文：
 
-```bash
-${config.test_command} 2>&1 | head -200
-```
+> 使用 backend-init-collector agent 初始化 bugfix 工作流：
+>
+> ## 任务
+> 1. 加载配置（defaults.yaml + 项目配置深度合并）
+> 2. 收集测试失败输出（如果用户未提供）
+> 3. 收集项目信息（Git 状态、目录结构、依赖信息）
+>
+> ## 用户提供的测试输出（如有）
+> [如果用户提供了测试输出，粘贴在这里；否则留空让 agent 自动运行测试]
 
-### 0.2 启动 error-analyzer agent
+### 0.2 验证 init-collector 输出
 
-使用 Task tool 调用 backend-error-analyzer agent，prompt 示例：
+验证 init-collector 返回的 JSON 格式：
+
+1. **格式验证**：确保返回有效 JSON
+2. **必填字段检查**：
+   - `config.test_command` 存在且非空
+   - `config.docs.bugfix_dir` 存在
+   - `test_output.raw` 存在且非空
+   - `test_output.status` 为有效值（`test_failed` | `command_failed` | `success`）
+   - `project_info.plugin_root` 存在
+3. **警告展示**：
+   - 如果 `warnings` 数组存在且非空，**立即向用户展示所有警告**：
+     ```
+     ⚠️ 初始化警告：
+     - [{code}] {message}
+       影响：{impact}
+     ```
+   - 如果任何警告的 `critical: true`，暂停询问用户是否继续
+4. **失败处理**：
+   - 格式无效：**停止**，报告 "Init collector 输出格式无效"
+   - 必填字段缺失：**停止**，报告缺失的字段
+   - `test_output.status` 为 `command_failed`：**停止**，报告 "测试命令执行失败，请检查环境配置"
+
+### 0.3 提取配置变量
+
+从 init-collector 输出中提取配置变量，存储为 `init_ctx`，用于后续 Phase。
+
+**常用路径快捷引用**：
+
+| 数据 | 路径 |
+|------|------|
+| 测试命令 | `init_ctx["config"]["test_command"]` |
+| Lint 命令 | `init_ctx["config"]["lint_command"]` |
+| 类型检查命令 | `init_ctx["config"]["typecheck_command"]` |
+| Bugfix 文档目录 | `init_ctx["config"]["docs"]["bugfix_dir"]` |
+| 最佳实践目录 | `init_ctx["config"]["docs"]["best_practices_dir"]` |
+| 测试输出 | `init_ctx["test_output"]["raw"]` |
+| 测试状态 | `init_ctx["test_output"]["status"]` |
+| Git 变更文件 | `init_ctx["project_info"]["git"]["modified_files"]` |
+
+**init_ctx 持久化**：
+- `init_ctx` 存储在当前会话内存中
+- 跨会话恢复时需重新运行 Phase 0
+- 使用 `--phase=N`（N > 0）跳过时，系统会验证 init_ctx 是否存在
+
+**可选字段防护**：
+构建 agent prompt 时，检查可选字段是否为 `null`：
+- 如果 `init_ctx["project_info"]["git"]` 为 `null`：使用 "(Git 信息不可用)" 替代 git 相关字段
+- 在 prompt 中明确标注哪些信息因不可用而缺失
+
+### 0.4 启动 error-analyzer agent
+
+使用 Task tool 调用 backend-error-analyzer agent，**使用 init_ctx 中的数据**：
 
 > 使用 backend-error-analyzer agent 分析以下测试失败输出，完成错误解析、分类、历史匹配和文档匹配。
 >
 > ## 测试输出
-> [粘贴测试输出]
+> [从 init_ctx["test_output"]["raw"] 获取]
 >
 > ## 项目路径
-> - bugfix 文档: [从配置读取 docs.bugfix_dir]
-> - troubleshooting: [从配置读取 docs.best_practices_dir]/troubleshooting.md
+> - bugfix 文档: [从 init_ctx["config"]["docs"]["bugfix_dir"] 获取]
+> - troubleshooting: [从 init_ctx["config"]["docs"]["best_practices_dir"] 获取]/troubleshooting.md
+>
+> ## 项目上下文（供参考）
+> - Git 变更文件: [如果 init_ctx["project_info"]["git"] 非 null，从 modified_files 获取；否则填 "(Git 信息不可用)"]
+> - 最近 commit: [如果 init_ctx["project_info"]["git"] 非 null，从 last_commit 获取；否则填 "(Git 信息不可用)"]
+> - 测试框架: [从 init_ctx["project_info"]["test_framework"] 获取]
 
-### 0.3 验证 Agent 输出
+### 0.5 验证 error-analyzer 输出
 
 验证 error-analyzer 返回的 JSON 格式：
 
@@ -123,7 +139,7 @@ ${config.test_command} 2>&1 | head -200
    - 必填字段缺失：**停止**，报告缺失的字段
    - 空结果：报告 "未检测到错误，请确认测试是否真的失败"
 
-### 0.4 记录到 TodoWrite
+### 0.6 记录到 TodoWrite
 
 使用 TodoWrite 记录所有待处理错误，格式：
 
@@ -143,13 +159,17 @@ ${config.test_command} 2>&1 | head -200
 > 使用 backend-root-cause agent 进行根因分析：
 >
 > ## 结构化错误
-> [Phase 0 的输出]
+> [Phase 0 error-analyzer 的输出]
 >
 > ## 相关代码
 > [使用 Read 获取的相关代码]
 >
 > ## 参考诊断文档
-> [匹配的 troubleshooting 章节]
+> [从 init_ctx["config"]["docs"]["best_practices_dir"] 获取]/troubleshooting.md
+>
+> ## 项目上下文（供参考）
+> - Git 变更文件: [如果 init_ctx["project_info"]["git"] 非 null，从 modified_files 获取；否则填 "(Git 信息不可用)"]
+> - 最近 commit: [如果 init_ctx["project_info"]["git"] 非 null，从 last_commit 获取；否则填 "(Git 信息不可用)"]
 
 ### 1.2 验证 Agent 输出
 
@@ -194,11 +214,11 @@ ${config.test_command} 2>&1 | head -200
 > 使用 backend-solution agent 设计修复方案：
 >
 > ## 根因分析
-> [Phase 1 的输出]
+> [Phase 1 root-cause 的输出]
 >
 > ## 参考最佳实践
-> - [从配置读取 docs.best_practices_dir]/README.md
-> - [从配置读取 docs.best_practices_dir]/implementation-guide.md
+> - [从 init_ctx["config"]["docs"]["best_practices_dir"] 获取]/README.md
+> - [从 init_ctx["config"]["docs"]["best_practices_dir"] 获取]/implementation-guide.md
 
 ### 2.2 安全审查
 
@@ -218,7 +238,7 @@ ${config.test_command} 2>&1 | head -200
 如果不是 `--dry-run` 模式，使用 Write tool 创建文档：
 
 ```text
-文件路径: ${config.docs.bugfix_dir}/{YYYY-MM-DD}-{issue-slug}.md
+文件路径: [从 init_ctx["config"]["docs"]["bugfix_dir"] 获取]/{YYYY-MM-DD}-{issue-slug}.md
 ```
 
 文档模板：
@@ -278,7 +298,7 @@ ${config.test_command} 2>&1 | head -200
 ### 3.2 等待用户确认
 
 **询问用户**：
-> "Bugfix 方案已生成，请查看 ${config.docs.bugfix_dir}/{date}-{issue}.md。
+> "Bugfix 方案已生成，请查看 [init_ctx["config"]["docs"]["bugfix_dir"]]/{date}-{issue}.md。
 > 确认后开始实施，或提出调整意见。"
 
 如果是 `--dry-run` 模式，到此结束。
@@ -302,9 +322,9 @@ ${config.test_command} 2>&1 | head -200
 > 3. REFACTOR: 重构代码保持测试通过
 >
 > ## 验证命令
-> - [从配置读取 test_command] FILTER={test_file}
-> - [从配置读取 lint_command]
-> - [从配置读取 typecheck_command]
+> - [从 init_ctx["config"]["test_command"] 获取] FILTER={test_file}
+> - [从 init_ctx["config"]["lint_command"] 获取]
+> - [从 init_ctx["config"]["typecheck_command"] 获取]
 
 ### 4.2 批次报告
 
@@ -339,8 +359,8 @@ ${config.test_command} 2>&1 | head -200
 > [完整修复过程记录]
 >
 > ## 现有文档
-> - [从配置读取 docs.bugfix_dir]
-> - [从配置读取 docs.best_practices_dir]
+> - [从 init_ctx["config"]["docs"]["bugfix_dir"] 获取]
+> - [从 init_ctx["config"]["docs"]["best_practices_dir"] 获取]
 >
 > ## 判断标准
 > - 是否是新发现的问题模式？
@@ -378,6 +398,28 @@ ${config.test_command} 2>&1 | head -200
 
 - **行为**：补充测试用例
 - **输出**：缺失覆盖的代码区域
+
+### Agent 调用错误处理
+
+所有 Task 工具调用 sub-agent 时应遵循以下错误处理：
+
+#### AE1: Agent 调用超时
+
+- **检测**：Task 工具超过 30 分钟未返回
+- **行为**：**停止**当前 Phase
+- **输出**："{agent_name} agent 响应超时，可能由于项目复杂度过高或网络问题。建议：1) 简化问题范围 2) 手动提供部分信息 3) 重试"
+
+#### AE2: Agent 输出截断
+
+- **检测**：返回的 JSON 不完整（解析失败）
+- **行为**：**停止**当前 Phase
+- **输出**："{agent_name} agent 输出被截断，请重试或简化问题范围"
+
+#### AE3: Agent 未返回预期格式
+
+- **检测**：返回内容不是 JSON 或缺少必要字段
+- **行为**：**停止**当前 Phase
+- **输出**："{agent_name} agent 返回格式异常，预期 JSON 包含 {required_fields}，实际收到：{content_preview}"
 
 ---
 

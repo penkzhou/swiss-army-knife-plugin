@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-这是一个 Claude Code 插件，实现了标准化的 6 阶段 bugfix 工作流，支持多技术栈（后端、端到端，前端计划中）。工作流通过专门的命令（`/fix-backend`、`/fix-e2e`）协调各个专业化 agent。
+这是一个 Claude Code 插件，实现了标准化的 6 阶段 bugfix 工作流，支持多技术栈（后端、端到端、前端）。工作流通过专门的命令（`/fix-backend`、`/fix-e2e`、`/fix-frontend`）协调各个专业化 agent。
 
 ## 架构
 
@@ -15,7 +15,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```text
 /fix-backend / /fix-e2e 命令 → Phase 0-5 协调
      │
-     ├─ Phase 0: error-analyzer agent → 解析和分类错误
+     ├─ Phase 0: 问题收集与分类
+     │   ├─ init-collector agent → 加载配置、收集测试输出、项目信息
+     │   └─ error-analyzer agent → 解析和分类错误
      ├─ Phase 1: root-cause agent → 带置信度评分的诊断分析
      ├─ Phase 2: solution agent → 设计 TDD 修复方案
      ├─ Phase 3: (主控制器) → 生成 bugfix 文档
@@ -27,16 +29,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 插件采用多技术栈架构：
 
-- **Commands**：`commands/fix-backend.md`、`commands/fix-e2e.md` - 按技术栈分离的协调器
-  - `commands/fix-frontend.md` - 🚧 计划中
+- **Commands**：`commands/fix-backend.md`、`commands/fix-e2e.md`、`commands/fix-frontend.md` - 按技术栈分离的协调器
 - **Agents**：按技术栈组织
-  - `agents/backend/`：后端专用 agents（error-analyzer、root-cause、solution、executor、quality-gate、knowledge）
-  - `agents/e2e/`：端到端测试专用 agents
-  - `agents/frontend/`：前端专用 agents（✅ 已完成，待 command 和 skill 配套后启用）
+  - `agents/backend/`：后端专用 agents（init-collector、error-analyzer、root-cause、solution、executor、quality-gate、knowledge）
+  - `agents/e2e/`：端到端测试专用 agents（含 init-collector）
+  - `agents/frontend/`：前端专用 agents（init-collector、error-analyzer、root-cause、solution、executor、quality-gate、knowledge）
 - **Skills**：按技术栈提供知识库
   - `skills/backend-bugfix/SKILL.md` - ✅ 完整，包含 Python/FastAPI 错误模式和 pytest 最佳实践
   - `skills/e2e-bugfix/SKILL.md` - ✅ 完整，包含 Playwright 错误模式和调试技巧
-  - `skills/frontend-bugfix/SKILL.md` - 🚧 计划中
+  - `skills/frontend-bugfix/SKILL.md` - ✅ 完整，包含 React/TypeScript 错误模式和 vitest/jest 最佳实践
 - **Configuration**：`.claude/swiss-army-knife.yaml` - 项目级配置，自定义命令和路径
 - **Hooks**：`hooks/hooks.json` - 在测试失败或代码变更时触发建议
 
@@ -55,7 +56,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **40-59**：暂停并询问用户
 - **<40**：停止并收集更多信息
 
-这在 root-cause agent 输出中实现，并在 fix.md Phase 1.2 中评估。
+这在 root-cause agent 输出中实现，并在各技术栈的 fix-{stack}.md（如 fix-backend.md）Phase 1.3 中评估。
 
 ## 插件开发
 
