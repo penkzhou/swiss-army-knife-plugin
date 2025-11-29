@@ -332,7 +332,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, TodoWrite, AskUserQues
 
 ---
 
-## Phase 5: 验证与沉淀
+## Phase 5: 验证、审查与沉淀
 
 ### 5.1 启动 quality-gate agent
 
@@ -349,14 +349,160 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, TodoWrite, AskUserQues
 > - lint 必须通过
 > - 无功能回归
 
-### 5.2 启动 knowledge agent
+### 5.2 并行启动 6 个 review agents
+
+使用 Task tool **并行**调用以下 6 个 review agents：
+
+```text
+并行执行：
+├── review-code-reviewer      # 通用代码审查
+├── review-silent-failure-hunter  # 静默失败检测
+├── review-code-simplifier    # 代码简化
+├── review-test-analyzer      # 测试覆盖分析
+├── review-comment-analyzer   # 注释准确性
+└── review-type-design-analyzer   # 类型设计分析
+```
+
+每个 agent 的 prompt 模板：
+
+> 使用 {agent_name} agent 审查代码变更：
+>
+> ## 变更文件
+> [变更文件列表，使用 git diff --name-only 获取]
+>
+> ## 项目规范
+> 参考 CLAUDE.md 中的项目规范
+>
+> ## 审查要求
+> - 只报告置信度 ≥ 80 的问题
+> - 输出标准 JSON 格式
+
+### 5.3 汇总 review 结果
+
+收集所有 review agents 的输出，汇总问题：
+
+```python
+all_issues = []
+for agent_result in review_results:
+    if agent_result["status"] == "success":
+        all_issues.extend(agent_result["issues"])
+
+# 按严重程度分类
+critical_issues = [i for i in all_issues if i["confidence"] >= 90]
+important_issues = [i for i in all_issues if 80 <= i["confidence"] < 90]
+fixable_issues = [i for i in all_issues if i.get("auto_fixable", False)]
+```
+
+展示汇总：
+
+```text
+Review 汇总：
+- 总问题数: {total}
+- Critical (≥90): {critical_count}
+- Important (80-89): {important_count}
+- 可自动修复: {fixable_count}
+```
+
+### 5.4 Review-Fix 循环（最多 3 次）
+
+**循环条件**：存在置信度 ≥ 80 且 `auto_fixable: true` 的问题
+
+**循环流程**：
+
+```text
+iteration = 0
+max_iterations = 3
+previous_issue_count = len(fixable_issues)
+consecutive_no_improvement = 0
+termination_reason = None
+
+WHILE (存在 ≥80 的可修复问题) AND (iteration < max_iterations):
+
+    1. 启动 review-fixer agent
+       > 使用 review-fixer agent 修复以下问题：
+       >
+       > ## 待修复问题
+       > [置信度 ≥80 且 auto_fixable 的问题列表]
+       >
+       > ## 验证命令
+       > - lint: [init_ctx["config"]["lint_command"]]
+       > - test: [init_ctx["config"]["test_command"]]
+
+    2. 验证修复结果
+       - 检查 review-fixer 输出的 verification_status
+       - 如果验证失败，记录并继续
+
+    3. 重新运行 quality-gate（快速验证）
+
+    4. 重新运行 6 个 review agents（并行）
+
+    5. 汇总新的问题列表
+       current_issue_count = len(new_fixable_issues)
+
+    6. 收敛检测
+       IF current_issue_count >= previous_issue_count:
+           consecutive_no_improvement++
+           IF current_issue_count > previous_issue_count:
+               termination_reason = "issues_increased"
+               BREAK
+           IF consecutive_no_improvement >= 2:
+               termination_reason = "converged"
+               BREAK
+       ELSE:
+           consecutive_no_improvement = 0
+           previous_issue_count = current_issue_count
+
+    7. iteration++
+
+END WHILE
+
+IF termination_reason IS NULL:
+    IF len(fixable_issues) == 0:
+        termination_reason = "no_fixable_issues"
+    ELSE:
+        termination_reason = "max_iterations"
+```
+
+**循环终止条件**：
+- `no_fixable_issues` - 没有置信度 ≥ 80 的可修复问题
+- `max_iterations` - 达到最大迭代次数（3 次）
+- `converged` - 连续 2 次迭代问题数量未减少
+- `issues_increased` - 问题数量增加，立即暂停
+
+**问题增加时的处理**：
+立即暂停并向用户报告新增问题列表。
+
+### 5.5 展示最终 review 报告
+
+```text
+=== Review 最终报告 ===
+
+迭代统计：
+- 总迭代次数: {iterations}
+- 初始问题数: {initial_count}
+- 最终问题数: {final_count}
+- 已修复问题: {fixed_count}
+
+已修复问题列表：
+- [CR-001] tests/e2e/login.spec.ts:42 - 选择器过于脆弱 ✓
+- [SFH-002] tests/e2e/utils.ts:15 - 空 catch 块 ✓
+
+剩余建议（未自动修复）：
+- [TD-001] tests/e2e/fixtures.ts:30 - 类型设计可改进（需人工处理）
+
+正面观察：
+- 测试结构清晰
+- Page Object 模式使用良好
+```
+
+### 5.6 启动 knowledge agent
 
 如果质量门禁通过，使用 Task tool 调用 e2e-knowledge agent，prompt 示例：
 
 > 使用 e2e-knowledge agent 提取可沉淀的知识：
 >
 > ## 修复过程
-> [完整修复过程记录]
+> [完整修复过程记录，包括 review-fix 循环]
 >
 > ## 现有文档
 > - [从 init_ctx["config"]["docs"]["bugfix_dir"] 获取]
@@ -366,12 +512,15 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, TodoWrite, AskUserQues
 > - 是否是新发现的问题模式？
 > - 解决方案是否可复用？
 > - 是否有值得记录的教训？
+> - review 发现的问题是否值得记录到最佳实践？
 
-### 5.3 完成报告
+### 5.7 完成报告
 
 汇总整个修复过程，向用户报告：
 
 - 修复的问题列表
+- Review 审查结果
+- 自动修复的问题
 - 验证结果
 - 沉淀的知识（如有）
 

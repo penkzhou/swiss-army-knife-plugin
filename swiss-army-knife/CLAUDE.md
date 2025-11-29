@@ -18,7 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 #### Bugfix 工作流 (6 阶段)
 
 ```text
-/fix-backend / /fix-e2e 命令 → Phase 0-5 协调
+/fix-backend / /fix-e2e / /fix-frontend 命令 → Phase 0-5 协调
      │
      ├─ Phase 0: 问题收集与分类
      │   ├─ init-collector agent → 加载配置、收集测试输出、项目信息
@@ -27,7 +27,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
      ├─ Phase 2: solution agent → 设计 TDD 修复方案
      ├─ Phase 3: (主控制器) → 生成 bugfix 文档
      ├─ Phase 4: executor agent → TDD 实现 (RED-GREEN-REFACTOR)
-     └─ Phase 5: quality-gate + knowledge agents → 验证和知识沉淀
+     └─ Phase 5: 验证、审查与沉淀
+         ├─ quality-gate agent → 质量门禁检查
+         ├─ 6 个 review agents (并行) → 代码审查
+         │   ├─ review-code-reviewer      # 通用代码审查
+         │   ├─ review-silent-failure-hunter  # 静默失败检测
+         │   ├─ review-code-simplifier    # 代码简化
+         │   ├─ review-test-analyzer      # 测试覆盖分析
+         │   ├─ review-comment-analyzer   # 注释准确性
+         │   └─ review-type-design-analyzer   # 类型设计分析
+         ├─ review-fixer agent → 自动修复 ≥80 置信度问题 (最多 3 次循环)
+         └─ knowledge agent → 知识沉淀
 ```
 
 #### PR Review 工作流 (8 阶段，Phase 0-7)
@@ -49,7 +59,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
      │   └─ response-generator agent → 基于修复结果生成回复
      ├─ Phase 6: 回复提交
      │   └─ response-submitter agent → 通过 gh CLI 提交回复到 PR
-     └─ Phase 7: 汇总报告
+     └─ Phase 7: 审查、汇总与沉淀
+         ├─ 6 个 review agents (并行) → 代码审查
+         ├─ review-fixer agent → 自动修复 ≥80 置信度问题 (最多 3 次循环)
          └─ summary-reporter agent → 生成处理报告和知识沉淀
 ```
 
@@ -65,6 +77,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `agents/e2e/`：端到端测试专用 agents（含 init-collector）
   - `agents/frontend/`：前端专用 agents（init-collector、error-analyzer、root-cause、solution、executor、quality-gate、knowledge）
   - `agents/pr-review/`：PR Review 专用 agents（init-collector、comment-fetcher、comment-filter、comment-classifier、fix-coordinator、response-generator、response-submitter、summary-reporter）
+  - `agents/review/`：通用 Review agents（在所有工作流的 Phase 5/7 中并行执行）
+    - `code-reviewer.md` - 通用代码审查、项目规范合规性检查
+    - `silent-failure-hunter.md` - 静默失败和错误处理检测
+    - `code-simplifier.md` - 代码简化和可维护性提升
+    - `test-analyzer.md` - 测试覆盖质量分析
+    - `comment-analyzer.md` - 注释准确性和完整性检查
+    - `type-design-analyzer.md` - 类型设计和封装性分析
+    - `review-fixer.md` - 自动修复置信度 ≥80 的问题
 - **Skills**：按技术栈和功能提供知识库
   - `skills/backend-bugfix/SKILL.md` - ✅ 完整，包含 Python/FastAPI 错误模式和 pytest 最佳实践
   - `skills/e2e-bugfix/SKILL.md` - ✅ 完整，包含 Playwright 错误模式和调试技巧
@@ -84,13 +104,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 工作流使用置信度分数（0-100）来决定行为：
 
-#### Bugfix 工作流
+#### Bugfix 工作流（根因分析）
 
 - **≥60**：自动继续
 - **40-59**：暂停并询问用户
 - **<40**：停止并收集更多信息
 
 这在 root-cause agent 输出中实现，并在各技术栈的 fix-{stack}.md（如 fix-backend.md）Phase 1.3 中评估。
+
+#### Review 代码审查（Phase 5/7）
+
+- **≥90 (Critical)**：严重问题，自动修复
+- **80-89 (Important)**：重要问题，自动修复
+- **<80**：低于阈值，不报告（仅内部追踪）
+
+在 Phase 5（bugfix 工作流）或 Phase 7（PR Review 工作流）中，6 个 review agents 并行执行，发现的 ≥80 置信度问题由 review-fixer agent 自动修复，最多循环 3 次直到问题收敛。
 
 #### PR Review 工作流
 
