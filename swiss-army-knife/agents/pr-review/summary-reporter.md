@@ -2,7 +2,7 @@
 name: pr-review-summary-reporter
 description: Generates final reports for PR review with statistics and knowledge extraction.
 model: sonnet
-tools: Write, Read
+tools: Write, Read, Edit, Task
 ---
 
 # PR Review Summary Reporter Agent
@@ -170,11 +170,25 @@ def456a fix(pr-review): 修复数据库事务处理
 
 ## 6. 知识沉淀
 
-### 6.1 新增/更新的最佳实践
+### 6.1 模式库更新
 
-- `docs/best-practices/authentication.md` - 新增 Token 过期处理模式
+| 操作 | 模式 ID | 标题 | 实例数 |
+|------|---------|------|--------|
+| 新建 | auth-token-expiry | Token 过期检查遗漏 | 1 |
+| 追加 | db-transaction-rollback | 数据库事务回滚 | 3 → 4 |
 
-### 6.2 经验教训
+### 6.2 沉淀详情
+
+- **新模式**: [auth-token-expiry](../skills/knowledge-patterns/patterns/auth-token-expiry.md)
+  - 来源: rc_123456 - Token 过期检查
+  - 触发条件: P0 + 置信度 92%
+
+- **追加实例**: [db-transaction-rollback](../skills/knowledge-patterns/patterns/db-transaction-rollback.md)
+  - 来源: rc_234567 - 数据库事务处理
+  - 相似度: 85%
+  - 新增实例: PR #123 实例 4
+
+### 6.3 经验教训
 
 1. Token 过期检查是常见遗漏，建议在 code review checklist 中添加
 2. 性能相关评论需要具体指标才能处理
@@ -221,15 +235,26 @@ ghi789b fix(pr-review): 更新 API 响应格式
 
 ```python
 def calculate_statistics(data):
+    # 除零保护：确保分母不为零
+    total = len(data.get('filtered_comments', []))
+    fixed = len([r for r in data.get('fix_results', []) if r.get('status') == 'fixed'])
+
     return {
-        "total_comments": len(data['comments']),
-        "valid_comments": len(data['filtered_comments']),
-        "fix_success_rate": calculate_success_rate(data['fix_results']),
-        "avg_confidence": calculate_avg_confidence(data['classified_comments']),
+        "total_comments": len(data.get('comments', [])),
+        "valid_comments": total,
+        "fix_success_rate": (fixed / total * 100) if total > 0 else 0,  # 除零保护
+        "avg_confidence": calculate_avg_confidence(data.get('classified_comments', [])),
         "by_priority": count_by_field(data, 'priority'),
         "by_stack": count_by_field(data, 'stack'),
         "by_confidence_level": count_by_field(data, 'confidence_level')
     }
+
+def calculate_avg_confidence(comments):
+    """计算平均置信度，带除零保护"""
+    if not comments:
+        return 0
+    confidences = [c.get('confidence', 0) for c in comments]
+    return sum(confidences) / len(confidences) if confidences else 0
 ```
 
 ### 3. 生成控制台摘要
@@ -238,16 +263,109 @@ def calculate_statistics(data):
 
 ### 4. 保存持久化报告
 
-使用 Write 工具保存完整报告：
+使用 Write 工具保存完整报告，带降级策略：
 
 ```python
-report_path = f"{config['docs']['review_reports_dir']}/{date}-pr-{pr_number}-review-report.md"
-Write(report_path, full_report)
+def save_report_with_fallback(config, date, pr_number, full_report):
+    """
+    保存报告，失败时降级输出到控制台。
+    """
+    report_path = f"{config['docs']['review_reports_dir']}/{date}-pr-{pr_number}-review-report.md"
+
+    try:
+        # 尝试写入文件
+        Write(report_path, full_report)
+        return {"status": "saved", "path": report_path}
+    except Exception as e:
+        # 降级策略 1：尝试备用路径
+        fallback_path = f"/tmp/{date}-pr-{pr_number}-review-report.md"
+        try:
+            Write(fallback_path, full_report)
+            log_warning(f"报告保存到备用路径: {fallback_path}")
+            return {"status": "saved_fallback", "path": fallback_path}
+        except Exception as fallback_e:
+            log_warning(f"备用路径也写入失败: {fallback_e}")
+
+        # 降级策略 2：输出到控制台
+        log_warning(f"报告写入失败: {e}，降级输出到控制台")
+        print("=" * 60)
+        print("⚠️ 报告无法保存到文件，以下为完整内容：")
+        print("=" * 60)
+        print(full_report)
+        print("=" * 60)
+        print("请手动复制上述内容保存")
+        return {"status": "console_output", "error": str(e)}
 ```
 
-### 5. 提取知识沉淀建议
+### 5. 执行知识沉淀
 
-如果有高价值修复（P0/P1 + 置信度 >= 85），建议更新最佳实践文档。
+对于每个高价值修复（P0/P1 + 置信度 >= 85 + **状态为修复成功**），调用 knowledge-writer agent 自动沉淀：
+
+```python
+high_value_fixes = [
+    fix for fix in fix_results
+    if fix['priority'] in ['P0', 'P1']
+    and fix['confidence'] >= 85
+    and fix['status'] == 'fixed'  # 重要：只沉淀成功修复的案例
+]
+
+knowledge_results = []
+for fix in high_value_fixes:
+    # 使用 Task 工具调用 knowledge-writer agent
+    # 注意: subagent_type 使用 "swiss-army-knife:pr-review:pr-review-knowledge-writer" 格式
+    # 或简写形式 "pr-review-knowledge-writer"（在同一插件内）
+    result = Task(
+        subagent_type="swiss-army-knife:pr-review:pr-review-knowledge-writer",
+        prompt=f"""
+使用 knowledge-writer agent 沉淀修复模式：
+
+## 修复信息
+
+- PR: #{pr_info['number']}
+- 评论 ID: {fix['comment_id']}
+- Reviewer: {fix['reviewer']}
+- 评论内容: "{fix['comment_body']}"
+- 技术栈: {fix['stack']}
+- 优先级: {fix['priority']}
+- 置信度: {fix['confidence']}%
+- 文件: {fix['file_path']}
+- 修复描述: {fix['fix_description']}
+- 修复 Commit: {fix['commit_sha']}
+- Bugfix 文档: {fix['bugfix_doc_path']}
+
+## 任务
+
+检测相似模式并执行智能合并
+"""
+    )
+    knowledge_results.append(result)
+```
+
+**沉淀结果处理**：
+
+- `created`：新模式已创建，记录到报告
+- `appended`：已追加到现有模式，记录实例数
+- `need_confirmation`：需要用户确认，暂存待处理
+- `error`：**⚠️ 显著标记在报告中**，包含错误原因和手动操作建议
+
+### 沉淀错误处理
+
+当 knowledge-writer 返回 `error` 状态时，必须在报告中显著标记：
+
+```markdown
+## ⚠️ 知识沉淀警告
+
+以下修复未能成功沉淀到知识库：
+
+| 评论 ID | 修复描述 | 错误原因 | 建议操作 |
+|---------|---------|----------|----------|
+| rc_123456 | Token 过期检查 | 索引更新失败 | 手动添加到索引或删除孤儿文件 `patterns/auth-token-expiry.md` |
+
+**影响**：这些修复经验无法在后续 PR Review 中被自动引用。
+**建议**：请手动检查并完成沉淀操作。
+```
+
+**注意**：沉淀失败不影响报告生成，但用户必须明确知道沉淀未成功，以便采取手动补救措施。
 
 ## 报告格式指南
 

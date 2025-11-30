@@ -51,7 +51,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
      ├─ Phase 1: 评论获取
      │   └─ comment-fetcher agent → 获取所有 review comments 和 issue comments
      ├─ Phase 2: 评论过滤
-     │   └─ comment-filter agent → 过滤过时评论（在最后 commit 之前创建的）
+     │   └─ comment-filter agent → 过滤已解决评论、CI 自动报告、空内容评论
      ├─ Phase 3: 评论分类
      │   └─ comment-classifier agent → 置信度评估、优先级分类、技术栈识别
      ├─ Phase 4: 修复协调
@@ -63,7 +63,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
      └─ Phase 7: 审查、汇总与沉淀
          ├─ 6 个 review agents (并行) → 代码审查
          ├─ review-fixer agent → 自动修复 ≥80 置信度问题 (最多 3 次循环)
-         └─ summary-reporter agent → 生成处理报告和知识沉淀
+         ├─ knowledge-writer agent → 高价值修复沉淀到知识模式库
+         └─ summary-reporter agent → 生成处理报告
 ```
 
 #### CI Job 失败修复工作流 (7 阶段，Phase 0-6)
@@ -102,7 +103,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `agents/backend/`：后端专用 agents（init-collector、error-analyzer、root-cause、quality-gate）
   - `agents/e2e/`：端到端测试专用 agents（init-collector、error-analyzer、root-cause、quality-gate）
   - `agents/frontend/`：前端专用 agents（init-collector、error-analyzer、root-cause、quality-gate）
-  - `agents/pr-review/`：PR Review 专用 agents（init-collector、comment-fetcher、comment-filter、comment-classifier、fix-coordinator、response-generator、response-submitter、summary-reporter）
+  - `agents/pr-review/`：PR Review 专用 agents（init-collector、comment-fetcher、comment-filter、comment-classifier、fix-coordinator、response-generator、response-submitter、knowledge-writer、summary-reporter）
   - `agents/ci-job/`：CI Job 修复专用 agents（ci-job-init-collector、ci-job-log-fetcher、ci-job-failure-classifier、ci-job-root-cause、ci-job-fix-coordinator、ci-job-summary-reporter）
   - `agents/review/`：通用 Review agents（在所有工作流的 Phase 5/6/7 中并行执行）
     - `code-reviewer.md` - 通用代码审查、项目规范合规性检查
@@ -119,6 +120,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `skills/frontend-bugfix/SKILL.md` - ✅ 完整，包含 React/TypeScript 错误模式和 vitest/jest 最佳实践
   - `skills/pr-review-analysis/SKILL.md` - ✅ 完整，包含置信度评估、优先级分类、技术栈识别和回复最佳实践
   - `skills/ci-job-analysis/SKILL.md` - ✅ 完整，包含 CI 失败类型分类、置信度评估、技术栈识别和常见错误模式
+  - `skills/knowledge-patterns/SKILL.md` - ✅ 完整，PR Review 修复模式库，支持智能相似度匹配和实例合并
 - **Configuration**：`.claude/swiss-army-knife.yaml` - 项目级配置，自定义命令和路径
 - **Hooks**：`hooks/hooks.json` - 在测试失败或代码变更时触发建议
 

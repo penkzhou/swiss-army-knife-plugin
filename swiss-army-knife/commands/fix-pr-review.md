@@ -127,15 +127,15 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, TodoWrite, AskUserQues
 >
 > ## 过滤条件
 >
-> - 最后 commit 时间: {init_ctx["pr_info"]["last_commit"]["timestamp"]}
-> - 排除 Bot 评论: true
 > - 排除已解决评论: true
+> - 排除 CI/CD 自动报告: true
+> - 排除空内容评论: true
 
 ### 2.2 验证输出
 
 1. 检查 `valid_comments` 数组存在
 2. 如果为空：
-   - **停止**并报告 "所有评论均在最后 commit 之前，已过时"
+   - **停止**并报告 "所有评论均已解决或为自动生成报告"
 3. 展示过滤摘要：
 
    ```text
@@ -143,9 +143,9 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, TodoWrite, AskUserQues
    - 总评论: {total_input}
    - 有效评论: {valid}
    - 已过滤: {filtered}
-     - 早于最后 commit: {by_reason.created_before_last_commit}
      - 已解决: {by_reason.already_resolved}
      - CI 自动报告: {by_reason.ci_auto_report}
+     - 空内容: {by_reason.empty_content}
    ```
 
 ---
@@ -555,7 +555,7 @@ IF termination_reason IS NULL:
 ## 关键原则
 
 1. **TodoWrite 跟踪**：记录所有待处理评论，防止遗漏
-2. **时间窗口过滤**：只处理最后 commit 之后的评论
+2. **智能过滤**：自动排除已解决评论、CI 自动报告和空内容评论
 3. **置信度驱动**：低置信度时询问用户，不强行处理
 4. **联动工作流**：调用对应技术栈的 bugfix 流程
 5. **自动回复**：处理完成后自动回复 reviewer
