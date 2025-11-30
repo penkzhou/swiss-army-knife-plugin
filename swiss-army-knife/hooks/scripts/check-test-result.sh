@@ -4,12 +4,34 @@
 
 set -e
 
+# === Critical: Check jq dependency ===
+if ! command -v jq &>/dev/null; then
+    echo "错误：swiss-army-knife 插件需要安装 jq。请运行：brew install jq (macOS) 或 apt-get install jq (Linux)" >&2
+    exit 1
+fi
+
 # Read JSON input
 INPUT=$(cat)
 
+# === Critical: Validate JSON input ===
+if [ -z "$INPUT" ]; then
+    # Empty input is expected for some hook invocations, silently exit
+    exit 0
+fi
+
+if ! echo "$INPUT" | jq -e . &>/dev/null; then
+    echo "警告：check-test-result hook 收到无效 JSON 输入，跳过处理" >&2
+    exit 0
+fi
+
 # Extract command and check if it's a test command
-COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""')
-TOOL_RESPONSE=$(echo "$INPUT" | jq -r '.tool_response // ""')
+COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
+TOOL_RESPONSE=$(echo "$INPUT" | jq -r '.tool_response // empty')
+
+# If command extraction failed, exit gracefully
+if [ -z "$COMMAND" ]; then
+    exit 0
+fi
 
 # Check if this is a test command
 if echo "$COMMAND" | grep -qE 'make test.*TARGET=frontend|make test TARGET=frontend'; then
