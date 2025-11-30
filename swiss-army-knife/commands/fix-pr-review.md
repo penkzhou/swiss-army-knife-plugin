@@ -75,6 +75,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, TodoWrite, AskUserQues
 | PR 编号 | `init_ctx["pr_info"]["number"]` |
 | 最后 commit SHA | `init_ctx["pr_info"]["last_commit"]["sha"]` |
 | 最后 commit 时间 | `init_ctx["pr_info"]["last_commit"]["timestamp"]` |
+| 仓库名称 | `init_ctx["project_info"]["repo"]` |
 | 置信度阈值 | `init_ctx["config"]["confidence_threshold"]` |
 | 技术栈路径模式 | `init_ctx["config"]["stack_path_patterns"]` |
 | 回复模板 | `init_ctx["config"]["response_templates"]` |
@@ -451,7 +452,7 @@ WHILE (存在 ≥80 的可修复问题) AND (iteration < max_iterations):
 END WHILE
 
 IF termination_reason IS NULL:
-    IF len(fixable_issues) == 0:
+    IF len(new_fixable_issues) == 0:
         termination_reason = "no_fixable_issues"
     ELSE:
         termination_reason = "max_iterations"
@@ -472,7 +473,7 @@ IF termination_reason IS NULL:
 === Review 报告 ===
 
 迭代统计：
-- 总迭代次数: {iterations}
+- 总迭代次数: {iteration}
 - 初始问题数: {initial_count}
 - 最终问题数: {final_count}
 - 已修复问题: {fixed_count}

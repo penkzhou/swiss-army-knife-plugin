@@ -48,8 +48,30 @@ else
     exit 0
 fi
 
-# Check if test failed (look for common failure indicators in response)
-if echo "$TOOL_RESPONSE" | grep -qiE 'FAIL|ERROR|failed|error:|exception|AssertionError|TypeError|SyntaxError'; then
+# Check if test failed
+# 使用更精确的模式匹配，减少误报（如测试名含 "error" 等）
+# 匹配策略:
+#   - 行首的明确失败标记: FAIL, FAILED, ERROR:
+#   - Jest 格式: "Tests: X failed" 或 "X failed,"
+#   - pytest 格式: "X failed" 在摘要行, "FAILED" 标记
+#   - 明确的运行时错误: AssertionError, TypeError, SyntaxError 作为独立词
+TEST_FAILED=false
+
+# 检查明确的失败指示（行首或明确的测试结果格式）
+if echo "$TOOL_RESPONSE" | grep -qE '^(FAIL|FAILED|ERROR:)'; then
+    TEST_FAILED=true
+# Jest/Vitest 格式: "Tests: X failed" 或 "X failed,"
+elif echo "$TOOL_RESPONSE" | grep -qE 'Tests:.*[0-9]+ failed|[0-9]+ failed,'; then
+    TEST_FAILED=true
+# pytest 格式: "X failed" 在结果摘要行
+elif echo "$TOOL_RESPONSE" | grep -qE '=+ [0-9]+ failed'; then
+    TEST_FAILED=true
+# 明确的异常类型（作为独立词，非子串）
+elif echo "$TOOL_RESPONSE" | grep -qwE 'AssertionError|TypeError|SyntaxError|ReferenceError'; then
+    TEST_FAILED=true
+fi
+
+if [ "$TEST_FAILED" = true ]; then
     # Output suggestion to stderr with exit code 2 so Claude sees it
     echo "💡 检测到${STACK}测试失败，建议使用 \`${CMD}\` 启动标准化 bugfix 流程" >&2
     exit 2

@@ -55,12 +55,14 @@ def is_valid_by_time(comment, last_commit_timestamp):
 
 **目标**：排除自动生成的无 review 价值的评论。
 
+**设计说明**：这是深度防御 (defense in depth) 的第二道关卡。`comment-fetcher` 在获取阶段已执行首次过滤，此处再次检查以确保漏网的 CI 报告被捕获。
+
 **注意**：不基于用户名过滤，因为 Claude 等有价值的 code review 工具也使用 `github-actions` 用户名。
 
-**检测条件**（基于内容模式）：
+**检测条件**：参考 `pr-review-comment-fetcher` 中定义的完整 `ci_report_patterns` 正则表达式列表。主要类别包括：
 
-- 覆盖率报告：`Coverage Report`, `XX% coverage`
-- CI 状态报告：`All checks passed`, `Build succeeded/failed`
+- 覆盖率报告：`Coverage Report/Summary`, `XX% coverage`
+- CI 状态报告：`All checks passed/failed`, `Build succeeded/failed`
 - 依赖更新通知：`Bumps xxx from x.x to y.y`, `Dependabot`, `Renovate`
 - 自动合并通知：`Auto-merge`, `automatically merged`
 

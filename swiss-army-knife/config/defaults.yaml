@@ -122,6 +122,8 @@ stacks:
 
     # 置信度阈值
     # 置信度范围: 0-100，决定评论的处理方式
+    # 不变式: auto_fix > ask_user >= need_clarification >= skip
+    # 修改时必须保持此排序关系，否则会导致分类逻辑异常
     confidence_threshold:
       auto_fix: 80            # >= 80 高置信度，自动修复
       ask_user: 60            # 60-79 中置信度，询问用户后处理
@@ -129,12 +131,15 @@ stacks:
       skip: 40                # < 40 极低置信度，跳过并回复 reviewer
 
     # 优先级定义
+    # batch_size 语义:
+    #   - auto_fix=true 时: 每批次自动处理的评论数
+    #   - auto_fix=false 时: 每次向用户展示的评论数，用户逐批确认
     priority:
       P0:
         name: "blocker"
         description: "阻塞上线的安全/数据问题"
         auto_fix: true
-        batch_size: 1   # 逐个处理
+        batch_size: 1   # 逐个处理，确保每个 blocker 被单独验证
       P1:
         name: "critical"
         description: "核心功能缺陷"
@@ -144,12 +149,12 @@ stacks:
         name: "major"
         description: "重要改进"
         auto_fix: false  # 询问用户
-        batch_size: 5
+        batch_size: 5    # 每次向用户展示 5 条评论供确认
       P3:
         name: "minor"
         description: "建议/风格问题"
         auto_fix: false
-        batch_size: 10
+        batch_size: 10   # 低优先级可批量展示更多
 
     # GitHub API 配置
     github:
@@ -157,6 +162,8 @@ stacks:
       timeout_seconds: 30
 
     # 置信度评分因素权重
+    # 不变式: 所有权重之和必须等于 1.0
+    # 当前: 0.4 + 0.3 + 0.2 + 0.1 = 1.0 ✓
     confidence_factors:
       clarity: 0.4          # 评论明确性
       specificity: 0.3      # 具体示例

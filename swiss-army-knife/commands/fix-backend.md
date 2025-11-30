@@ -457,7 +457,7 @@ WHILE (存在 ≥80 的可修复问题) AND (iteration < max_iterations):
 END WHILE
 
 IF termination_reason IS NULL:
-    IF len(fixable_issues) == 0:
+    IF len(new_fixable_issues) == 0:
         termination_reason = "no_fixable_issues"
     ELSE:
         termination_reason = "max_iterations"
@@ -485,7 +485,7 @@ IF termination_reason IS NULL:
 === Review 最终报告 ===
 
 迭代统计：
-- 总迭代次数: {iterations}
+- 总迭代次数: {iteration}
 - 初始问题数: {initial_count}
 - 最终问题数: {final_count}
 - 已修复问题: {fixed_count}
