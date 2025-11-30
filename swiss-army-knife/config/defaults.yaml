@@ -1,21 +1,25 @@
 # Multi-stack bugfix workflow 默认配置
 # 项目可通过 .claude/swiss-army-knife.yaml 覆盖
 
+# 共享文档路径配置（各技术栈可覆盖）
+defaults:
+  docs:
+    bugfix_dir: "docs/bugfix"
+    best_practices_dir: "docs/best-practices"
+
 stacks:
   frontend:
     name: "Frontend (React/TypeScript)"
     test_command: "make test TARGET=frontend"
     lint_command: "make lint TARGET=frontend"
     typecheck_command: "make typecheck TARGET=frontend"
-    docs:
-      bugfix_dir: "docs/bugfix"
-      best_practices_dir: "docs/best-practices"
-      search_keywords:
-        mock: ["mock", "msw", "vi.mock", "server.use", "HttpResponse"]
-        async: ["async", "await", "findBy", "waitFor", "act"]
-        type: ["typescript", "type", "interface", "as any", "generic"]
-        render: ["render", "screen", "component", "props"]
-        hook: ["useEffect", "useMemo", "useCallback", "useState"]
+    # docs 继承自 defaults.docs
+    search_keywords:
+      mock: ["mock", "msw", "vi.mock", "server.use", "HttpResponse"]
+      async: ["async", "await", "findBy", "waitFor", "act"]
+      type: ["typescript", "type", "interface", "as any", "generic"]
+      render: ["render", "screen", "component", "props"]
+      hook: ["useEffect", "useMemo", "useCallback", "useState"]
     error_patterns:
       mock_conflict:
         frequency: 71
@@ -43,41 +47,25 @@ stacks:
     test_command: "make test TARGET=backend"
     lint_command: "make lint TARGET=backend"
     typecheck_command: "make typecheck TARGET=backend"
-    docs:
-      bugfix_dir: "docs/bugfix"
-      best_practices_dir: "docs/best-practices"
-      search_keywords:
-        database:
-          ["database", "query", "ORM", "SQL", "transaction", "SQLAlchemy"]
-        api: ["endpoint", "request", "response", "REST", "GraphQL", "FastAPI"]
-        auth: ["authentication", "authorization", "token", "JWT", "session"]
-        validation: ["validation", "schema", "pydantic", "input", "sanitize"]
-        async: ["async", "await", "asyncio", "concurrent"]
+    # docs 继承自 defaults.docs
+    search_keywords:
+      database: ["database", "query", "ORM", "SQL", "transaction", "SQLAlchemy"]
+      api: ["endpoint", "request", "response", "REST", "GraphQL", "FastAPI"]
+      auth: ["authentication", "authorization", "token", "JWT", "session"]
+      validation: ["validation", "schema", "pydantic", "input", "sanitize"]
+      async: ["async", "await", "asyncio", "concurrent"]
     error_patterns:
       database_error:
         frequency: 30
-        signals:
-          [
-            "IntegrityError",
-            "OperationalError",
-            "sqlalchemy.exc",
-            "UNIQUE constraint",
-          ]
+        signals: ["IntegrityError", "OperationalError", "sqlalchemy.exc", "UNIQUE constraint"]
         description: "数据库连接、查询、事务问题"
       validation_error:
         frequency: 25
-        signals:
-          ["ValidationError", "pydantic", "422 Unprocessable", "field required"]
+        signals: ["ValidationError", "pydantic", "422 Unprocessable", "field required"]
         description: "输入验证、Schema 验证失败"
       api_error:
         frequency: 20
-        signals:
-          [
-            "HTTPException",
-            "status_code",
-            "404 Not Found",
-            "405 Method Not Allowed",
-          ]
+        signals: ["HTTPException", "status_code", "404 Not Found", "405 Method Not Allowed"]
         description: "API 端点错误、HTTP 状态码问题"
       auth_error:
         frequency: 10
@@ -96,16 +84,14 @@ stacks:
     name: "E2E (Playwright/Cypress)"
     test_command: "make test TARGET=e2e"
     lint_command: "make lint TARGET=e2e"
-    docs:
-      bugfix_dir: "docs/bugfix"
-      best_practices_dir: "docs/best-practices"
-      search_keywords:
-        selector:
-          ["selector", "locator", "element", "getBy", "findBy", "data-testid"]
-        timing: ["timeout", "wait", "retry", "polling", "waitFor"]
-        network: ["intercept", "mock", "request", "route", "fulfill"]
-        assertion: ["expect", "assert", "toHave", "toBe", "toBeVisible"]
-        navigation: ["goto", "navigate", "url", "redirect"]
+    # typecheck_command: 不适用于 E2E 测试（类型检查由 frontend/backend 栈处理）
+    # docs 继承自 defaults.docs
+    search_keywords:
+      selector: ["selector", "locator", "element", "getBy", "findBy", "data-testid"]
+      timing: ["timeout", "wait", "retry", "polling", "waitFor"]
+      network: ["intercept", "mock", "request", "route", "fulfill"]
+      assertion: ["expect", "assert", "toHave", "toBe", "toBeVisible"]
+      navigation: ["goto", "navigate", "url", "redirect"]
     error_patterns:
       timeout_error:
         frequency: 35
@@ -135,26 +121,20 @@ stacks:
   pr_review:
     name: "PR Review Handler"
 
-    # 置信度阈值
-    # 置信度范围: 0-100，决定评论的处理方式
-    # 不变式: auto_fix > ask_user >= need_clarification >= skip
-    # 修改时必须保持此排序关系，否则会导致分类逻辑异常
+    # 置信度阈值 (不变式: auto_fix > ask_user > need_clarification)
     confidence_threshold:
-      auto_fix: 80 # >= 80 高置信度，自动修复
-      ask_user: 60 # 60-79 中置信度，询问用户后处理
+      auto_fix: 80           # >= 80 高置信度，自动修复
+      ask_user: 60           # 60-79 中置信度，询问用户后处理
       need_clarification: 40 # 40-59 低置信度，标记需澄清
-      skip: 39 # < 40 极低置信度，跳过并回复 reviewer
+      # < 40 极低置信度，跳过并回复 reviewer
 
-    # 优先级定义
-    # batch_size 语义:
-    #   - auto_fix=true 时: 每批次自动处理的评论数
-    #   - auto_fix=false 时: 每次向用户展示的评论数，用户逐批确认
+    # 优先级定义 (batch_size: auto_fix=true 时为每批自动处理数，否则为每次展示给用户的数量)
     priority:
       P0:
         name: "blocker"
         description: "阻塞上线的安全/数据问题"
         auto_fix: true
-        batch_size: 1 # 逐个处理，确保每个 blocker 被单独验证
+        batch_size: 1
       P1:
         name: "critical"
         description: "核心功能缺陷"
@@ -163,66 +143,40 @@ stacks:
       P2:
         name: "major"
         description: "重要改进"
-        auto_fix: false # 询问用户
-        batch_size: 5 # 每次向用户展示 5 条评论供确认
+        auto_fix: false
+        batch_size: 5
       P3:
         name: "minor"
         description: "建议/风格问题"
         auto_fix: false
-        batch_size: 10 # 低优先级可批量展示更多
+        batch_size: 10
 
-    # GitHub API 配置
     github:
       rate_limit_buffer: 10
       timeout_seconds: 30
 
-    # 置信度评分因素权重
-    # 不变式: 所有权重之和必须等于 1.0
-    # 当前: 0.4 + 0.3 + 0.2 + 0.1 = 1.0 ✓
+    # 置信度评分因素权重 (不变式: 权重之和 = 1.0)
     confidence_factors:
-      clarity: 0.4 # 评论明确性
-      specificity: 0.3 # 具体示例
-      context: 0.2 # 上下文理解
+      clarity: 0.4        # 评论明确性
+      specificity: 0.3    # 具体示例
+      context: 0.2        # 上下文理解
       reproducibility: 0.1 # 可复现性
 
-    # 优先级分类关键词
     classification_keywords:
       security:
-        patterns:
-          [
-            "security",
-            "vulnerability",
-            "injection",
-            "XSS",
-            "CSRF",
-            "leak",
-            "exposed",
-            "sensitive",
-          ]
+        patterns: ["security", "vulnerability", "injection", "XSS", "CSRF", "leak", "exposed", "sensitive"]
         priority_boost: 2
       critical:
-        patterns:
-          ["crash", "data loss", "downtime", "blocker", "production", "urgent"]
+        patterns: ["crash", "data loss", "downtime", "blocker", "production", "urgent"]
         priority: "P0"
       bug:
-        patterns:
-          [
-            "bug",
-            "broken",
-            "fail",
-            "error",
-            "incorrect",
-            "doesn't work",
-            "not working",
-          ]
+        patterns: ["bug", "broken", "fail", "error", "incorrect", "doesn't work", "not working"]
         priority: "P1"
       improvement:
-        patterns:
-          ["should", "better", "improve", "optimize", "refactor", "performance"]
+        patterns: ["should", "better", "improve", "optimize", "refactor", "performance"]
         priority: "P2"
       suggestion:
-        patterns:
-          ["consider", "maybe", "could", "nit", "style", "minor", "typo"]
+        patterns: ["consider", "maybe", "could", "nit", "style", "minor", "typo"]
         priority: "P3"
 
     # 技术栈路径映射（可被项目配置覆盖）
@@ -249,16 +203,13 @@ stacks:
         - "playwright/**"
         - "cypress/**"
 
-    # 文档配置
     docs:
-      bugfix_dir: "docs/bugfix"
-      best_practices_dir: "docs/best-practices"
       review_reports_dir: "docs/reviews"
+      # bugfix_dir, best_practices_dir 继承自 defaults.docs
 
-    # 回复模板
     response_templates:
       fixed: |
-        ✅ 已修复
+        已修复
 
         感谢指出！已在 `{commit_sha}` 中完成修复。
 
@@ -270,14 +221,14 @@ stacks:
         {test_results}
 
       need_clarification: |
-        ⏸️ 需要更多信息
+        需要更多信息
 
         感谢建议！为了更好地理解您的意图，能否提供更多细节？
 
         {questions}
 
       skipped_low_confidence: |
-        ❌ 暂不处理
+        暂不处理
 
         感谢建议！当前置信度较低（{confidence}%），原因：{reason}
 
@@ -286,13 +237,13 @@ stacks:
         2. 复现步骤（如适用）
 
       outdated: |
-        ℹ️ 评论已过时
+        评论已过时
 
         此评论在最新代码提交之前创建，相关代码可能已更新。
         如果问题仍然存在，请更新评论或创建新评论。
 
       user_declined: |
-        ⏭️ 用户选择暂不处理
+        用户选择暂不处理
 
         感谢您的建议！PR 作者已确认此评论，但选择在当前迭代中暂不处理。
 
@@ -301,7 +252,7 @@ stacks:
         如果您认为这是必须修复的问题，请与 PR 作者进一步讨论。
 
       failed: |
-        ❌ 自动修复失败
+        自动修复失败
 
         感谢指出！我们尝试自动修复此问题，但未能成功完成。
 
@@ -309,3 +260,79 @@ stacks:
         **尝试次数**：{attempts}
 
         我们将人工处理此问题。如果您有更多建议，欢迎补充说明。
+
+  ci_job:
+    name: "CI Job Failure Handler"
+
+    # 失败类型分类 (auto_fixable: "full"|"partial"|"none")
+    failure_types:
+      test_failure:
+        signals: ["FAILED", "pytest", "jest", "vitest", "AssertionError", "test"]
+        auto_fixable: "full"
+        related_workflows: ["/fix-backend", "/fix-frontend", "/fix-e2e"]
+      e2e_failure:
+        signals: ["playwright", "cypress", "Timeout", "e2e", "puppeteer"]
+        auto_fixable: "full"
+        related_workflows: ["/fix-e2e"]
+      build_failure:
+        signals: ["tsc", "compile", "build failed", "webpack", "error TS"]
+        auto_fixable: "partial"
+        related_workflows: ["/fix-frontend", "/fix-backend"]
+      lint_failure:
+        signals: ["eslint", "ruff", "prettier", "lint", "@typescript-eslint"]
+        auto_fixable: "full"
+        # 使用 lint_quick_fix 映射中的工具特定命令，根据日志检测到的工具名称匹配
+      type_check_failure:
+        signals: ["type error", "mypy", "tsc --noEmit", "error TS"]
+        auto_fixable: "partial"
+        related_workflows: ["/fix-frontend", "/fix-backend"]
+      dependency_failure:
+        signals: ["npm install", "pip install", "yarn", "pnpm", "ERESOLVE", "requirement"]
+        auto_fixable: "none"
+      config_failure:
+        signals: ["env", "secret", "permission denied", "credentials", "KEY_ERROR"]
+        auto_fixable: "none"
+      infrastructure_failure:
+        signals: ["runner", "OOM", "killed", "disk space", "self-hosted"]
+        auto_fixable: "none"
+
+    # 置信度阈值 (不变式: auto_fix > ask_user > suggest_manual)
+    confidence_threshold:
+      auto_fix: 80       # >= 80 自动修复
+      ask_user: 60       # 60-79 询问用户
+      suggest_manual: 40 # 40-59 建议手动
+      # < 40 跳过，不处理
+
+    # 置信度评分因素权重 (不变式: 权重之和 = 1.0)
+    confidence_factors:
+      signal_clarity: 0.4
+      file_location: 0.3
+      pattern_match: 0.2
+      context_complete: 0.1
+
+    github:
+      log_max_lines: 5000
+      timeout_seconds: 60
+      log_retention_days: 90
+
+    stack_detection:
+      backend:
+        patterns: ["pytest", "python", "FastAPI", "Django", "flask"]
+        file_patterns: ["**/*.py", "tests/backend/**", "tests/unit/**"]
+      frontend:
+        patterns: ["jest", "vitest", "react", "vue", "angular", "typescript"]
+        file_patterns: ["**/*.tsx", "**/*.jsx", "tests/frontend/**"]
+      e2e:
+        patterns: ["playwright", "cypress", "e2e", "puppeteer"]
+        file_patterns: ["e2e/**", "tests/e2e/**", "playwright/**"]
+
+    docs:
+      ci_reports_dir: "docs/ci-reports"
+      # bugfix_dir 继承自 defaults.docs
+
+    # Lint 快速修复命令映射
+    lint_quick_fix:
+      eslint: "npx eslint --fix"
+      ruff: "ruff check --fix"
+      prettier: "npx prettier --write"
+      biome: "npx biome check --apply"

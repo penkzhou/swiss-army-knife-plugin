@@ -10,6 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 1. **标准化 6 阶段 bugfix 工作流**：支持多技术栈（后端、端到端、前端），通过 `/fix-backend`、`/fix-e2e`、`/fix-frontend` 命令协调
 2. **PR Code Review 处理工作流**：8 阶段流程 (Phase 0-7)，通过 `/fix-pr-review` 命令自动分析和修复 PR 中的代码审查评论
+3. **CI Job 失败修复工作流**：7 阶段流程 (Phase 0-6)，通过 `/fix-failed-job` 命令自动分析和修复 GitHub Actions 失败的 job
 
 ## 架构
 
@@ -65,6 +66,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
          └─ summary-reporter agent → 生成处理报告和知识沉淀
 ```
 
+#### CI Job 失败修复工作流 (7 阶段，Phase 0-6)
+
+```text
+/fix-failed-job <JOB_URL> 命令 → Phase 0-6 协调
+     │
+     ├─ Phase 0: 初始化
+     │   └─ job-init-collector agent → 解析 URL、验证 gh CLI、获取 Job 元信息
+     ├─ Phase 1: 日志获取
+     │   └─ job-log-fetcher agent → 下载日志、识别失败 step、提取错误
+     ├─ Phase 2: 失败分类
+     │   └─ job-failure-classifier agent → 失败类型分类、技术栈识别、置信度评估
+     ├─ Phase 3: 根因分析
+     │   └─ job-root-cause agent → 深度分析、历史匹配、生成修复建议
+     ├─ Phase 4: 修复执行
+     │   └─ job-fix-coordinator agent → 置信度驱动决策、调用 bugfix 工作流
+     ├─ Phase 5: 验证与审查
+     │   ├─ 本地验证 (tests, lint, typecheck)
+     │   ├─ 6 个 review agents (并行) → 代码审查
+     │   └─ review-fixer agent → 自动修复 ≥80 置信度问题 (最多 3 次循环)
+     └─ Phase 6: 汇总与可选重试
+         └─ job-summary-reporter agent → 报告、可选 git commit、可选 job retry
+```
+
 ### 组件结构
 
 插件采用多技术栈架构：
@@ -72,12 +96,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Commands**：
   - `commands/fix-backend.md`、`commands/fix-e2e.md`、`commands/fix-frontend.md` - 按技术栈分离的 bugfix 协调器
   - `commands/fix-pr-review.md` - PR Code Review 处理协调器
+  - `commands/fix-failed-job.md` - CI Job 失败修复协调器
 - **Agents**：按技术栈和功能组织
   - `agents/backend/`：后端专用 agents（init-collector、error-analyzer、root-cause、solution、executor、quality-gate、knowledge）
   - `agents/e2e/`：端到端测试专用 agents（含 init-collector）
   - `agents/frontend/`：前端专用 agents（init-collector、error-analyzer、root-cause、solution、executor、quality-gate、knowledge）
   - `agents/pr-review/`：PR Review 专用 agents（init-collector、comment-fetcher、comment-filter、comment-classifier、fix-coordinator、response-generator、response-submitter、summary-reporter）
-  - `agents/review/`：通用 Review agents（在所有工作流的 Phase 5/7 中并行执行）
+  - `agents/ci-job/`：CI Job 修复专用 agents（ci-job-init-collector、ci-job-log-fetcher、ci-job-failure-classifier、ci-job-root-cause、ci-job-fix-coordinator、ci-job-summary-reporter）
+  - `agents/review/`：通用 Review agents（在所有工作流的 Phase 5/6/7 中并行执行）
     - `code-reviewer.md` - 通用代码审查、项目规范合规性检查
     - `silent-failure-hunter.md` - 静默失败和错误处理检测
     - `code-simplifier.md` - 代码简化和可维护性提升
@@ -90,6 +116,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `skills/e2e-bugfix/SKILL.md` - ✅ 完整，包含 Playwright 错误模式和调试技巧
   - `skills/frontend-bugfix/SKILL.md` - ✅ 完整，包含 React/TypeScript 错误模式和 vitest/jest 最佳实践
   - `skills/pr-review-analysis/SKILL.md` - ✅ 完整，包含置信度评估、优先级分类、技术栈识别和回复最佳实践
+  - `skills/ci-job-analysis/SKILL.md` - ✅ 完整，包含 CI 失败类型分类、置信度评估、技术栈识别和常见错误模式
 - **Configuration**：`.claude/swiss-army-knife.yaml` - 项目级配置，自定义命令和路径
 - **Hooks**：`hooks/hooks.json` - 在测试失败或代码变更时触发建议
 
@@ -133,6 +160,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 具体性 (Specificity) - 30%：是否有具体示例或测试场景
 - 上下文 (Context) - 20%：是否理解代码上下文和影响
 - 可复现 (Reproducibility) - 10%：是否有复现步骤
+
+#### CI Job 失败修复工作流
+
+- **≥80**：高置信度，自动修复
+- **60-79**：中置信度，询问用户后修复
+- **40-59**：低置信度，展示分析结果，建议手动修复
+- **<40**：极低置信度，跳过并报告原因
+
+置信度基于 4 个加权因素计算：
+
+- 信号明确性 (Signal Clarity) - 40%：错误信号是否清晰明确
+- 文件定位 (File Location) - 30%：是否能定位到具体文件和行号
+- 模式匹配 (Pattern Match) - 20%：是否匹配已知错误模式
+- 上下文完整 (Context Complete) - 10%：是否有完整的堆栈追踪
 
 ## 插件开发
 
