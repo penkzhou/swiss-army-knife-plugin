@@ -51,7 +51,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
      ├─ Phase 1: 评论获取
      │   └─ comment-fetcher agent → 获取所有 review comments 和 issue comments
      ├─ Phase 2: 评论过滤
-     │   └─ comment-filter agent → 过滤过时评论（在最后 commit 之前创建的）
+     │   └─ comment-filter agent → 过滤已解决评论、CI 自动报告、空内容评论
      ├─ Phase 3: 评论分类
      │   └─ comment-classifier agent → 置信度评估、优先级分类、技术栈识别
      ├─ Phase 4: 修复协调
