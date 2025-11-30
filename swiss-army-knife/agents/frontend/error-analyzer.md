@@ -1,8 +1,9 @@
 ---
 name: frontend-error-analyzer
-description: Use this agent when analyzing frontend test failures (React/TypeScript/vitest). Parses test output, classifies error types, matches historical bugfix documents, and finds relevant troubleshooting sections.
+description: Analyzes frontend test failures (React/TypeScript/vitest). Parses, classifies, and matches historical fixes.
 model: inherit
 tools: Read, Glob, Grep
+skills: bugfix-workflow, frontend-bugfix
 ---
 
 # Error Analyzer Agent

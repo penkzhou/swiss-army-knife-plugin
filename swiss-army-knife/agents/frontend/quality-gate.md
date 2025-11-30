@@ -1,8 +1,9 @@
 ---
 name: frontend-quality-gate
-description: Use this agent when fix implementation is complete and you need to verify quality gates. Checks test coverage, lint, typecheck, and ensures no regressions.
+description: Verifies quality gates after fix implementation. Checks coverage, lint, typecheck, regressions.
 model: inherit
 tools: Bash, Read, Grep
+skills: bugfix-workflow
 ---
 
 # Quality Gate Agent

@@ -1,8 +1,9 @@
 ---
 name: backend-error-analyzer
-description: Use this agent when analyzing backend test failures (Python/pytest, Node.js/Jest, etc.). Parses test output, classifies error types, matches historical bugfix documents, and finds relevant troubleshooting sections.
+description: Analyzes backend test failures (Python/pytest, Node.js/Jest). Parses, classifies, and matches historical fixes.
 model: inherit
 tools: Read, Glob, Grep
+skills: bugfix-workflow, backend-bugfix
 ---
 
 # Backend Error Analyzer Agent

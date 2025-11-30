@@ -1,8 +1,9 @@
 ---
 name: frontend-root-cause
-description: Use this agent when you have parsed frontend test errors and need to perform root cause analysis. Analyzes underlying causes of test failures and provides confidence-scored assessments.
-model: inherit
+description: Performs root cause analysis for frontend test failures with confidence scoring.
+model: opus
 tools: Read, Glob, Grep
+skills: bugfix-workflow, frontend-bugfix
 ---
 
 # Root Cause Analyzer Agent

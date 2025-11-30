@@ -1,6 +1,6 @@
 ---
 name: ci-job-fix-coordinator
-description: Use this agent to coordinate fixes for GitHub Actions job failures. Schedules appropriate bugfix workflows, handles confidence-driven decisions, and tracks fix results.
+description: Coordinates CI failure fixes with confidence-driven decisions.
 model: opus
 tools: Task, Read, Write, TodoWrite, AskUserQuestion, SlashCommand, Bash
 skills: ci-job-analysis

@@ -1,6 +1,6 @@
 ---
 name: pr-review-fix-coordinator
-description: Use this agent when classified PR comments are ready for fixing. Applies confidence-driven decision making (>=80 auto-fix, 60-79 ask user, <60 skip); processes by priority order (P0 individually, P1 in batches); dispatches to /fix-backend, /fix-frontend, or /fix-e2e workflows based on tech stack. Triggers in Phase 4 after comment classification.
+description: Coordinates PR comment fixes with confidence-driven decisions. Dispatches to tech-stack workflows.
 model: opus
 tools: Task, Read, Write, TodoWrite, AskUserQuestion, SlashCommand
 skills: pr-review-analysis
@@ -367,7 +367,7 @@ def parse_fix_result(result, comment_id):
 ```python
 def build_backend_fix_prompt(context):
     """构建 Backend 修复 Prompt"""
-    return f"""使用 backend-solution agent 设计修复方案：
+    return f"""使用 bugfix-solution agent（stack: backend）设计修复方案：
 
 ## 来源
 PR Review 评论（非测试失败）
@@ -397,7 +397,7 @@ PR Review 评论（非测试失败）
 
 def build_frontend_fix_prompt(context):
     """构建 Frontend 修复 Prompt"""
-    return f"""使用 frontend-solution agent 设计修复方案：
+    return f"""使用 bugfix-solution agent（stack: frontend）设计修复方案：
 
 ## 来源
 PR Review 评论（非测试失败）
@@ -427,7 +427,7 @@ PR Review 评论（非测试失败）
 
 def build_e2e_fix_prompt(context):
     """构建 E2E 修复 Prompt"""
-    return f"""使用 e2e-solution agent 设计修复方案：
+    return f"""使用 bugfix-solution agent（stack: e2e）设计修复方案：
 
 ## 来源
 PR Review 评论（非测试失败）

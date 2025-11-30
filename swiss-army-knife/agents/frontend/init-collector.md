@@ -1,8 +1,9 @@
 ---
 name: frontend-init-collector
-description: Use this agent to initialize frontend bugfix workflow. Loads configuration (defaults + project overrides), captures test failure output, and collects project context (Git status, dependencies, component structure).
+description: Initializes frontend bugfix workflow. Loads config, captures test output, collects project context.
 model: sonnet
 tools: Read, Glob, Grep, Bash
+skills: bugfix-workflow, frontend-bugfix
 ---
 
 # Frontend Init Collector Agent

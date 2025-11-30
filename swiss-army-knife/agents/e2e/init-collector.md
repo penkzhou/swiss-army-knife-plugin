@@ -1,8 +1,9 @@
 ---
 name: e2e-init-collector
-description: Use this agent to initialize E2E bugfix workflow. Loads configuration (defaults + project overrides), captures test failure output, and collects project context (Git status, dependencies, browser config).
-model: inherit
+description: Initializes E2E bugfix workflow. Loads config, captures test output, collects project context.
+model: sonnet
 tools: Read, Glob, Grep, Bash
+skills: bugfix-workflow, e2e-bugfix
 ---
 
 # E2E Init Collector Agent

@@ -1,8 +1,9 @@
 ---
 name: ci-job-summary-reporter
-description: Use this agent to generate final reports for CI job fix workflow. Creates comprehensive fix reports, optionally commits changes, triggers job retry, and performs knowledge distillation.
-model: inherit
+description: Generates final reports for CI fix. Optionally commits and retries job.
+model: sonnet
 tools: Bash, Read, Write, Glob
+skills: ci-job-analysis
 ---
 
 # CI Job Summary Reporter Agent

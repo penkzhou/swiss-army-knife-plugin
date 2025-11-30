@@ -1,8 +1,9 @@
 ---
 name: e2e-error-analyzer
-description: Use this agent when analyzing E2E test failures (Playwright, Cypress, etc.). Parses test output, classifies error types, matches historical bugfix documents, and finds relevant troubleshooting sections.
-model: opus
+description: Analyzes E2E test failures (Playwright/Cypress). Parses, classifies, and matches historical fixes.
+model: inherit
 tools: Read, Glob, Grep
+skills: bugfix-workflow, e2e-bugfix
 ---
 
 # E2E Error Analyzer Agent

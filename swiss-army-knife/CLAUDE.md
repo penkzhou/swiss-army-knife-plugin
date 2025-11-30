@@ -25,9 +25,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
      │   ├─ init-collector agent → 加载配置、收集测试输出、项目信息
      │   └─ error-analyzer agent → 解析和分类错误
      ├─ Phase 1: root-cause agent → 带置信度评分的诊断分析
-     ├─ Phase 2: solution agent → 设计 TDD 修复方案
-     ├─ Phase 3: (主控制器) → 生成 bugfix 文档
-     ├─ Phase 4: executor agent → TDD 实现 (RED-GREEN-REFACTOR)
+     ├─ Phase 2: bugfix-solution agent (stack) → 设计 TDD 修复方案
+     ├─ Phase 3: bugfix-doc-writer agent (stack) → 生成 bugfix 文档
+     ├─ Phase 4: bugfix-executor agent (stack) → TDD 实现 (RED-GREEN-REFACTOR)
      └─ Phase 5: 验证、审查与沉淀
          ├─ quality-gate agent → 质量门禁检查
          ├─ 6 个 review agents (并行) → 代码审查
@@ -38,7 +38,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
          │   ├─ review-comment-analyzer   # 注释准确性
          │   └─ review-type-design-analyzer   # 类型设计分析
          ├─ review-fixer agent → 自动修复 ≥80 置信度问题 (最多 3 次循环)
-         └─ knowledge agent → 知识沉淀
+         └─ bugfix-knowledge agent (stack) → 知识沉淀
 ```
 
 #### PR Review 工作流 (8 阶段，Phase 0-7)
@@ -98,9 +98,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `commands/fix-pr-review.md` - PR Code Review 处理协调器
   - `commands/fix-failed-job.md` - CI Job 失败修复协调器
 - **Agents**：按技术栈和功能组织
-  - `agents/backend/`：后端专用 agents（init-collector、error-analyzer、root-cause、solution、executor、quality-gate、knowledge）
-  - `agents/e2e/`：端到端测试专用 agents（含 init-collector）
-  - `agents/frontend/`：前端专用 agents（init-collector、error-analyzer、root-cause、solution、executor、quality-gate、knowledge）
+  - `agents/bugfix/`：通用 Bugfix agents（doc-writer、executor、knowledge、solution），接受 `stack` 参数区分技术栈
+  - `agents/backend/`：后端专用 agents（init-collector、error-analyzer、root-cause、quality-gate）
+  - `agents/e2e/`：端到端测试专用 agents（init-collector、error-analyzer、root-cause、quality-gate）
+  - `agents/frontend/`：前端专用 agents（init-collector、error-analyzer、root-cause、quality-gate）
   - `agents/pr-review/`：PR Review 专用 agents（init-collector、comment-fetcher、comment-filter、comment-classifier、fix-coordinator、response-generator、response-submitter、summary-reporter）
   - `agents/ci-job/`：CI Job 修复专用 agents（ci-job-init-collector、ci-job-log-fetcher、ci-job-failure-classifier、ci-job-root-cause、ci-job-fix-coordinator、ci-job-summary-reporter）
   - `agents/review/`：通用 Review agents（在所有工作流的 Phase 5/6/7 中并行执行）
@@ -112,6 +113,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
     - `type-design-analyzer.md` - 类型设计和封装性分析
     - `review-fixer.md` - 自动修复置信度 ≥80 的问题
 - **Skills**：按技术栈和功能提供知识库
+  - `skills/bugfix-workflow/SKILL.md` - ✅ 完整，包含通用 TDD 流程、输出格式规范、置信度评分标准
   - `skills/backend-bugfix/SKILL.md` - ✅ 完整，包含 Python/FastAPI 错误模式和 pytest 最佳实践
   - `skills/e2e-bugfix/SKILL.md` - ✅ 完整，包含 Playwright 错误模式和调试技巧
   - `skills/frontend-bugfix/SKILL.md` - ✅ 完整，包含 React/TypeScript 错误模式和 vitest/jest 最佳实践

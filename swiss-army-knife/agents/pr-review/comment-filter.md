@@ -1,6 +1,6 @@
 ---
 name: pr-review-comment-filter
-description: Use this agent to filter PR comments by time window. Removes outdated comments (created before last commit) and already resolved comments.
+description: Filters PR comments by time. Removes outdated and resolved comments.
 model: sonnet
 tools: Read
 ---

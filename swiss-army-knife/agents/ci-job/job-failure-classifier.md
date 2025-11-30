@@ -1,8 +1,9 @@
 ---
 name: ci-job-failure-classifier
-description: Use this agent to classify GitHub Actions job failures. Evaluates confidence, identifies failure type and technology stack, and determines if auto-fix is possible.
+description: Classifies CI failures. Identifies type, stack, and auto-fix possibility.
 model: inherit
 tools: Read, Glob, Grep
+skills: ci-job-analysis
 ---
 
 # CI Job Failure Classifier Agent

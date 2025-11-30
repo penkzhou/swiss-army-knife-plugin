@@ -1,6 +1,6 @@
 ---
 name: pr-review-comment-classifier
-description: Use this agent when you have filtered PR comments and need to evaluate their actionability. Calculates confidence scores (0-100) using clarity, specificity, context, and reproducibility factors; classifies priority (P0-P3) based on security and severity keywords; identifies tech stack from file paths. Triggers in Phase 3 after comment filtering.
+description: Evaluates PR comment actionability with confidence scores and priority classification.
 model: opus
 tools: Read, Grep, Glob
 skills: pr-review-analysis
