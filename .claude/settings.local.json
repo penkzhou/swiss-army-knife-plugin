@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__plugin_episodic-memory_episodic-memory__search"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
