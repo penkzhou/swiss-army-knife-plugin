@@ -18,16 +18,17 @@ description: PR Review 修复模式库。在处理 PR Review 评论时自动查�
 <!-- INDEX_START -->
 | 模式 ID | 标题 | 技术栈 | 严重度 | 实例数 | 标签 |
 |---------|------|--------|--------|--------|------|
+| _example-silent-error-handling | [示例] 错误处理静默失败 | backend | P1 | 1 | error-handling, try-catch, silent-failure, example |
 <!-- INDEX_END -->
 
-> 索引为空表示尚未沉淀任何模式。随着 fix-pr-review 流程的执行，高价值修复会自动添加到此索引。
+> 带 `_example-` 前缀的是示例模式，展示格式规范。实际模式由 `knowledge-writer` agent 在 fix-pr-review 流程中自动沉淀。
 
 ## 按技术栈分类
 
 ### Backend
 
 <!-- BACKEND_START -->
-_暂无模式_
+- [_example-silent-error-handling](patterns/_example-silent-error-handling.md) - [示例] 错误处理静默失败
 <!-- BACKEND_END -->
 
 ### Frontend
