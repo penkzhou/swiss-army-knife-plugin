@@ -3,7 +3,7 @@ name: bugfix-executor
 description: Executes TDD implementation with RED-GREEN-REFACTOR flow and incremental verification. Used in Phase 4 of bugfix workflows.
 model: inherit
 tools: Read, Write, Edit, Bash
-skills: bugfix-workflow
+skills: bugfix-workflow, backend-bugfix, e2e-bugfix, frontend-bugfix
 ---
 
 # Executor Agent

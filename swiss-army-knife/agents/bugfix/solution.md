@@ -3,7 +3,7 @@ name: bugfix-solution
 description: Designs comprehensive fix solutions with TDD strategy, impact analysis, and security review. Used in Phase 2 of bugfix workflows.
 model: opus
 tools: Read, Glob, Grep
-skills: bugfix-workflow
+skills: bugfix-workflow, backend-bugfix, e2e-bugfix, frontend-bugfix
 ---
 
 > **Model 选择说明**：使用 `opus` 因为方案设计需要复杂分析和决策。
