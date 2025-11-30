@@ -1,6 +1,6 @@
 ---
 name: pr-review-comment-filter
-description: Filters PR comments by time. Removes outdated and resolved comments.
+description: Filters PR comments. Removes resolved, CI auto-generated, and empty comments.
 model: sonnet
 tools: Read
 ---

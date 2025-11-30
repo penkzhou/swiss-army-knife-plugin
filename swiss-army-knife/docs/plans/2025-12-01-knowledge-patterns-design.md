@@ -1,7 +1,7 @@
 # Knowledge Patterns 知识沉淀设计
 
 > 生成时间: 2025-12-01
-> 状态: 已验证，待实现
+> 状态: 已实现
 
 ## 1. 背景与目标
 
@@ -162,8 +162,8 @@ def calculate_similarity(new_fix, existing_pattern):
 
 ## 8. 验收标准
 
-1. [ ] 高价值修复自动写入 `skills/knowledge-patterns/patterns/`
-2. [ ] 相似模式正确追加实例而非重复创建
-3. [ ] SKILL.md 索引表自动更新
-4. [ ] AI 在后续 fix-pr-review 时能查阅已有模式
-5. [ ] 人类可直接阅读模式文档
+1. [x] 高价值修复自动写入 `skills/knowledge-patterns/patterns/`
+2. [x] 相似模式正确追加实例而非重复创建
+3. [x] SKILL.md 索引表自动更新
+4. [x] AI 在后续 fix-pr-review 时能查阅已有模式
+5. [x] 人类可直接阅读模式文档

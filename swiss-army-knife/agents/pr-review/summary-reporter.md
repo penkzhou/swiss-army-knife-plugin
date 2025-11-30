@@ -283,8 +283,8 @@ def save_report_with_fallback(config, date, pr_number, full_report):
             Write(fallback_path, full_report)
             log_warning(f"报告保存到备用路径: {fallback_path}")
             return {"status": "saved_fallback", "path": fallback_path}
-        except:
-            pass
+        except Exception as fallback_e:
+            log_warning(f"备用路径也写入失败: {fallback_e}")
 
         # 降级策略 2：输出到控制台
         log_warning(f"报告写入失败: {e}，降级输出到控制台")
