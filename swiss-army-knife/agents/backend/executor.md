@@ -1,7 +1,7 @@
 ---
 name: backend-executor
 description: Use this agent when a fix solution has been designed and approved, and you need to execute the TDD implementation. Handles RED-GREEN-REFACTOR execution with incremental verification.
-model: opus
+model: inherit
 tools: Read, Write, Edit, Bash
 ---
 

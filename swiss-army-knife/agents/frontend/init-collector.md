@@ -92,6 +92,7 @@ tools: Read, Glob, Grep, Bash
 ```
 
 **test_output.status 取值**：
+
 | 值 | 含义 |
 |-----|------|
 | `test_failed` | 测试命令执行成功，但有用例失败 |
@@ -138,6 +139,7 @@ read .claude/swiss-army-knife.yaml
 - 项目配置优先级更高
 
 **伪代码**：
+
 ```python
 def deep_merge(default, override):
     result = copy.deepcopy(default)
@@ -168,6 +170,7 @@ ${config.test_command} 2>&1 | head -200
 ```
 
 记录：
+
 - **raw**: 完整输出（前 200 行）
 - **command**: 实际执行的命令
 - **exit_code**: 退出码
@@ -175,6 +178,7 @@ ${config.test_command} 2>&1 | head -200
 - **source**: `"auto_run"`
 
 **status 判断逻辑**：
+
 1. 如果 exit_code = 0：`status: "success"`
 2. 如果 exit_code != 0：
    - 如果输出为空或极短（< 10 字符）：`status: "command_failed"`，添加警告 `OUTPUT_EMPTY`
@@ -182,6 +186,7 @@ ${config.test_command} 2>&1 | head -200
      - vitest/jest 关键词：`fail`, `pass`, `vitest`, `jest`, `tests:`, `✓`, `✗`, `expected`, `received`
    - 匹配多个特征（≥ 2）：`status: "test_failed"`
    - 仅匹配单一关键词：`status: "test_failed"`，添加警告：
+
      ```json
      {
        "code": "STATUS_UNCERTAIN",
@@ -190,6 +195,7 @@ ${config.test_command} 2>&1 | head -200
        "suggestion": "如遇问题，请手动提供测试输出或检查测试命令配置"
      }
      ```
+
    - 无匹配：`status: "command_failed"`
 
 ### 3. 项目信息收集
@@ -208,6 +214,7 @@ git log -1 --oneline
 ```
 
 **输出**：
+
 - `branch`: 当前分支名
 - `modified_files`: 修改/新增的文件列表
 - `last_commit`: 最近一次 commit 的简短描述
@@ -222,6 +229,7 @@ find . -maxdepth 3 -type d \( -name "src" -o -name "components" -o -name "hooks"
 ```
 
 **输出**：
+
 - `src_dirs`: 源代码根目录
 - `component_dirs`: 组件目录
 - `test_dirs`: 测试目录
@@ -237,6 +245,7 @@ grep -E "react|next|vitest|jest|@testing-library|msw" package.json 2>/dev/null
 ```
 
 **关注的依赖**（前端相关）：
+
 - **框架**: react, next, vue, angular
 - **测试**: vitest, jest, @testing-library/react, @testing-library/vue
 - **Mock**: msw, nock, axios-mock-adapter
@@ -262,6 +271,7 @@ ls package-lock.json yarn.lock pnpm-lock.yaml 2>/dev/null
 ```
 
 **输出**：
+
 - `bundler`: vite/webpack/next/parcel
 - `package_manager`: npm/yarn/pnpm
 
@@ -297,6 +307,7 @@ ls package-lock.json yarn.lock pnpm-lock.yaml 2>/dev/null
 - **行为**：
   1. 根据 status 判断逻辑设置 `test_output.status`
   2. 如果 `status: "command_failed"`，添加警告：
+
      ```json
      {
        "code": "TEST_COMMAND_FAILED",
@@ -305,6 +316,7 @@ ls package-lock.json yarn.lock pnpm-lock.yaml 2>/dev/null
        "suggestion": "请检查测试环境配置，或手动提供测试输出"
      }
      ```
+
   3. **继续**执行
 
 ### E5: Git 命令失败
@@ -312,6 +324,7 @@ ls package-lock.json yarn.lock pnpm-lock.yaml 2>/dev/null
 - **检测**：git 命令返回错误
 - **行为**：
   1. 添加警告到 `warnings` 数组：
+
      ```json
      {
        "code": "GIT_UNAVAILABLE",
@@ -321,6 +334,7 @@ ls package-lock.json yarn.lock pnpm-lock.yaml 2>/dev/null
        "critical": true
      }
      ```
+
   2. 设置 `project_info.git: null`
   3. **继续**执行
 

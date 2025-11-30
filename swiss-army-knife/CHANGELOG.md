@@ -10,18 +10,21 @@
 ## [0.3.0] - 2025-11-27
 
 ### Added
+
 - 多技术栈支持：frontend, backend, e2e
 - 配置系统：`config/defaults.yaml` + 项目级覆盖 (`.claude/swiss-army-knife.yaml`)
 - 新命令：`/fix-frontend`, `/fix-backend`, `/fix-e2e`
 - Backend/E2E 占位 Agent 和 Skill
 
 ### Changed
+
 - 重命名 `/fix` → `/fix-frontend`
 - Agent 目录结构：`agents/` → `agents/{stack}/`
 - Skill 目录结构：`skills/bugfix-workflow/` → `skills/{stack}-bugfix/`
 - 移除硬编码路径，改为配置驱动
 
 ### Migration
+
 - 现有 `/fix` 用户需改用 `/fix-frontend`
 
 ## [0.2.1] - 2025-11-26

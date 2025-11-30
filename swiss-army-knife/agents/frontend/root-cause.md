@@ -1,27 +1,8 @@
 ---
-model: opus
-allowed-tools: ["Read", "Glob", "Grep"]
-whenToUse: |
-  Use this agent when you have parsed test errors and need to perform root cause analysis. This agent analyzes the underlying cause of test failures and provides confidence-scored assessments.
-
-  Examples:
-  <example>
-  Context: Error analyzer has identified multiple mock_conflict errors
-  user: "错误已经分类了，帮我分析根因"
-  assistant: "我将使用 root-cause agent 进行深度根因分析"
-  <commentary>
-  After error classification, root cause analysis is the natural next step.
-  </commentary>
-  </example>
-
-  <example>
-  Context: User wants to understand why a specific test is failing
-  user: "这个测试为什么会失败？useQuery 明明被 mock 了"
-  assistant: "让我使用 root-cause agent 分析这个 mock 相关的问题"
-  <commentary>
-  Deep analysis of specific failure patterns triggers root-cause agent.
-  </commentary>
-  </example>
+name: frontend-root-cause
+description: Use this agent when you have parsed frontend test errors and need to perform root cause analysis. Analyzes underlying causes of test failures and provides confidence-scored assessments.
+model: inherit
+tools: Read, Glob, Grep
 ---
 
 # Root Cause Analyzer Agent

@@ -31,7 +31,7 @@
 
 ## 3. 目录结构
 
-```
+```text
 swiss-army-knife/
 ├── .claude-plugin/
 │   └── plugin.json

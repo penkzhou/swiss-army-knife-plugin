@@ -20,7 +20,7 @@ This repository is a Claude Code plugin marketplace containing specialized plugi
 
 ## Structure
 
-```
+```text
 swiss-army-knife-plugin/           # Marketplace root
 ├── .claude-plugin/
 │   └── marketplace.json           # Marketplace manifest

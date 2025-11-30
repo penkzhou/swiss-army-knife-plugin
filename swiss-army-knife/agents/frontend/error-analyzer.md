@@ -1,27 +1,8 @@
 ---
-model: opus
-allowed-tools: ["Read", "Glob", "Grep"]
-whenToUse: |
-  Use this agent when you need to analyze frontend test failures. This agent parses test output, classifies error types, matches historical bugfix documents, and finds relevant troubleshooting sections.
-
-  Examples:
-  <example>
-  Context: User runs frontend tests and they fail
-  user: "make test TARGET=frontend 失败了，帮我分析一下"
-  assistant: "我将使用 error-analyzer agent 来分析测试失败输出"
-  <commentary>
-  Test failure analysis is the primary use case for error-analyzer.
-  </commentary>
-  </example>
-
-  <example>
-  Context: User pastes test output directly
-  user: "这是测试输出：FAIL src/components/__tests__/Button.test.tsx..."
-  assistant: "让我使用 error-analyzer agent 解析这些错误"
-  <commentary>
-  Direct test output parsing triggers error-analyzer.
-  </commentary>
-  </example>
+name: frontend-error-analyzer
+description: Use this agent when analyzing frontend test failures (React/TypeScript/vitest). Parses test output, classifies error types, matches historical bugfix documents, and finds relevant troubleshooting sections.
+model: inherit
+tools: Read, Glob, Grep
 ---
 
 # Error Analyzer Agent

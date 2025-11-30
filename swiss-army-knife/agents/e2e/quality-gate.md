@@ -1,7 +1,7 @@
 ---
 name: e2e-quality-gate
 description: Use this agent when fix implementation is complete and you need to verify quality gates. Checks test pass rate, lint, and ensures no regressions.
-model: sonnet
+model: inherit
 tools: Bash, Read, Grep
 ---
 
