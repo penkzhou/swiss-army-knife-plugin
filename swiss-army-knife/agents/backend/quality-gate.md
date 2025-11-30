@@ -1,8 +1,9 @@
 ---
 name: backend-quality-gate
-description: Use this agent when fix implementation is complete and you need to verify quality gates. Checks test coverage, lint, typecheck, and ensures no regressions.
+description: Verifies quality gates after fix implementation. Checks coverage, lint, typecheck, regressions.
 model: sonnet
 tools: Bash, Read, Grep
+skills: bugfix-workflow
 ---
 
 # Backend Quality Gate Agent

@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "mcp__plugin_episodic-memory_episodic-memory__search"
+      "mcp__plugin_episodic-memory_episodic-memory__search",
+      "Bash(done)",
+      "Bash(find:*)",
+      "Bash(for dir in frontend backend e2e pr-review ci-job review)",
+      "Bash(do echo \"$dir:\")",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

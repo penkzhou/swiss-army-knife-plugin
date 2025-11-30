@@ -1,8 +1,9 @@
 ---
 name: backend-root-cause
-description: Use this agent when you have parsed backend test errors and need to perform root cause analysis. Analyzes underlying causes of test failures and provides confidence-scored assessments.
+description: Performs root cause analysis for backend test failures with confidence scoring.
 model: opus
 tools: Read, Glob, Grep
+skills: bugfix-workflow, backend-bugfix
 ---
 
 # Backend Root Cause Analyzer Agent

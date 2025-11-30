@@ -1,8 +1,9 @@
 ---
 name: ci-job-init-collector
-description: Use this agent to initialize Failed Job workflow. Parses job URL, collects job metadata, validates GitHub CLI availability, and loads configuration.
-model: inherit
+description: Initializes Failed Job workflow. Parses URL, collects metadata, validates gh CLI.
+model: sonnet
 tools: Bash, Read, Glob
+skills: ci-job-analysis
 ---
 
 # CI Job Init Collector Agent

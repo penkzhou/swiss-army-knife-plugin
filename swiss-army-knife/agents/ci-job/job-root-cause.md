@@ -1,6 +1,6 @@
 ---
 name: ci-job-root-cause
-description: Use this agent for deep root cause analysis of GitHub Actions job failures. Analyzes underlying causes, matches historical cases, and generates fix suggestions.
+description: Deep root cause analysis for CI failures with historical matching.
 model: opus
 tools: Read, Glob, Grep, Bash
 skills: ci-job-analysis

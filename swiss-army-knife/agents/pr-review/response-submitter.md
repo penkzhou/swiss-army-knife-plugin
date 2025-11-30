@@ -1,6 +1,6 @@
 ---
 name: pr-review-response-submitter
-description: Use this agent when generated responses are ready to be posted to GitHub. Posts review comment replies via gh api pulls/comments/{id}/replies; posts issue comments via gh api issues/{pr}/comments; handles rate limiting with exponential backoff; supports dry-run mode for preview. Triggers in Phase 6 after response generation.
+description: Posts responses to GitHub PR via gh CLI with rate limiting support.
 model: sonnet
 tools: Bash
 ---

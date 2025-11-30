@@ -1,8 +1,9 @@
 ---
 name: pr-review-init-collector
-description: Use this agent to initialize PR Review workflow. Collects PR metadata, last commit information, validates GitHub CLI availability, and loads configuration.
+description: Initializes PR Review workflow. Collects PR metadata and validates gh CLI.
 model: sonnet
 tools: Bash, Read, Glob
+skills: pr-review-analysis
 ---
 
 # PR Review Init Collector Agent

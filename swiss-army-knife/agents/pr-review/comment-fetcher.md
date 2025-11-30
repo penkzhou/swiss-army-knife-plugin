@@ -1,6 +1,6 @@
 ---
 name: pr-review-comment-fetcher
-description: Use this agent when you need to fetch both review comments (on code lines) and issue comments (general discussion) from a GitHub PR using gh CLI. Triggers after PR metadata collection in Phase 1 of the PR Review workflow.
+description: Fetches review and issue comments from GitHub PR using gh CLI.
 model: sonnet
 tools: Bash
 ---

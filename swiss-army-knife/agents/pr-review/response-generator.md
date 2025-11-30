@@ -1,6 +1,6 @@
 ---
 name: pr-review-response-generator
-description: Use this agent when fix results are available and you need to generate GitHub reply content. Renders templates for different statuses (fixed, need_clarification, skipped, failed); adjusts tone for professionalism; generates clarification questions based on low-confidence factors. Triggers in Phase 5 after fix coordination.
+description: Generates GitHub reply content from fix results with appropriate tone.
 model: sonnet
 tools: Read
 skills: pr-review-analysis

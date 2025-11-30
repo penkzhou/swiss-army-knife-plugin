@@ -1,8 +1,9 @@
 ---
 name: e2e-quality-gate
-description: Use this agent when fix implementation is complete and you need to verify quality gates. Checks test pass rate, lint, and ensures no regressions.
+description: Verifies quality gates after fix implementation. Checks test pass rate, lint, regressions.
 model: inherit
 tools: Bash, Read, Grep
+skills: bugfix-workflow
 ---
 
 # E2E Quality Gate Agent

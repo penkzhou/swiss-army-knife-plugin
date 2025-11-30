@@ -1,8 +1,9 @@
 ---
 name: ci-job-log-fetcher
-description: Use this agent to fetch and parse GitHub Actions job logs. Downloads complete job logs, identifies failed steps, and extracts error-related log excerpts.
-model: inherit
+description: Fetches and parses GitHub Actions job logs. Extracts error-related excerpts.
+model: sonnet
 tools: Bash, Read, Write
+skills: ci-job-analysis
 ---
 
 # CI Job Log Fetcher Agent

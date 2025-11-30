@@ -1,8 +1,9 @@
 ---
 name: e2e-root-cause
-description: Use this agent when you have parsed E2E test errors and need to perform root cause analysis. Analyzes underlying causes of test failures and provides confidence-scored assessments.
+description: Performs root cause analysis for E2E test failures with confidence scoring.
 model: opus
 tools: Read, Glob, Grep
+skills: bugfix-workflow, e2e-bugfix
 ---
 
 # E2E Root Cause Analyzer Agent

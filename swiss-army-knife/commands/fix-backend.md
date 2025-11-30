@@ -224,9 +224,9 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, TodoWrite, AskUserQues
 
 ### 2.1 启动 solution agent
 
-使用 Task tool 调用 backend-solution agent，prompt 示例：
+使用 Task tool 调用 bugfix-solution agent（stack: backend），prompt 示例：
 
-> 使用 backend-solution agent 设计修复方案：
+> 使用 bugfix-solution agent（stack: backend） 设计修复方案：
 >
 > ## 根因分析
 >
@@ -252,9 +252,9 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, TodoWrite, AskUserQues
 
 ### 3.1 启动 doc-writer agent
 
-如果不是 `--dry-run` 模式，使用 Task tool 调用 backend-doc-writer agent：
+如果不是 `--dry-run` 模式，使用 Task tool 调用 bugfix-doc-writer agent（stack: backend）：
 
-> 使用 backend-doc-writer agent 生成 Bugfix 文档：
+> 使用 bugfix-doc-writer agent（stack: backend） 生成 Bugfix 文档：
 >
 > ## 根因分析
 >
@@ -306,9 +306,9 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, TodoWrite, AskUserQues
 
 ### 4.1 启动 executor agent
 
-使用 Task tool 调用 backend-executor agent，prompt 示例：
+使用 Task tool 调用 bugfix-executor agent（stack: backend），prompt 示例：
 
-> 使用 backend-executor agent 执行 TDD 修复流程：
+> 使用 bugfix-executor agent（stack: backend） 执行 TDD 修复流程：
 >
 > ## TDD 计划
 > [Phase 2 的 TDD 计划]
@@ -504,9 +504,9 @@ IF termination_reason IS NULL:
 
 ### 5.6 启动 knowledge agent
 
-如果质量门禁通过，使用 Task tool 调用 backend-knowledge agent，prompt 示例：
+如果质量门禁通过，使用 Task tool 调用 bugfix-knowledge agent（stack: backend），prompt 示例：
 
-> 使用 backend-knowledge agent 提取可沉淀的知识：
+> 使用 bugfix-knowledge agent（stack: backend） 提取可沉淀的知识：
 >
 > ## 修复过程
 > [完整修复过程记录，包括 review-fix 循环]
