@@ -47,7 +47,8 @@ stacks:
       bugfix_dir: "docs/bugfix"
       best_practices_dir: "docs/best-practices"
       search_keywords:
-        database: ["database", "query", "ORM", "SQL", "transaction", "SQLAlchemy"]
+        database:
+          ["database", "query", "ORM", "SQL", "transaction", "SQLAlchemy"]
         api: ["endpoint", "request", "response", "REST", "GraphQL", "FastAPI"]
         auth: ["authentication", "authorization", "token", "JWT", "session"]
         validation: ["validation", "schema", "pydantic", "input", "sanitize"]
@@ -55,15 +56,28 @@ stacks:
     error_patterns:
       database_error:
         frequency: 30
-        signals: ["IntegrityError", "OperationalError", "sqlalchemy.exc", "UNIQUE constraint"]
+        signals:
+          [
+            "IntegrityError",
+            "OperationalError",
+            "sqlalchemy.exc",
+            "UNIQUE constraint",
+          ]
         description: "数据库连接、查询、事务问题"
       validation_error:
         frequency: 25
-        signals: ["ValidationError", "pydantic", "422 Unprocessable", "field required"]
+        signals:
+          ["ValidationError", "pydantic", "422 Unprocessable", "field required"]
         description: "输入验证、Schema 验证失败"
       api_error:
         frequency: 20
-        signals: ["HTTPException", "status_code", "404 Not Found", "405 Method Not Allowed"]
+        signals:
+          [
+            "HTTPException",
+            "status_code",
+            "404 Not Found",
+            "405 Method Not Allowed",
+          ]
         description: "API 端点错误、HTTP 状态码问题"
       auth_error:
         frequency: 10
@@ -86,7 +100,8 @@ stacks:
       bugfix_dir: "docs/bugfix"
       best_practices_dir: "docs/best-practices"
       search_keywords:
-        selector: ["selector", "locator", "element", "getBy", "findBy", "data-testid"]
+        selector:
+          ["selector", "locator", "element", "getBy", "findBy", "data-testid"]
         timing: ["timeout", "wait", "retry", "polling", "waitFor"]
         network: ["intercept", "mock", "request", "route", "fulfill"]
         assertion: ["expect", "assert", "toHave", "toBe", "toBeVisible"]
@@ -125,10 +140,10 @@ stacks:
     # 不变式: auto_fix > ask_user >= need_clarification >= skip
     # 修改时必须保持此排序关系，否则会导致分类逻辑异常
     confidence_threshold:
-      auto_fix: 80            # >= 80 高置信度，自动修复
-      ask_user: 60            # 60-79 中置信度，询问用户后处理
-      need_clarification: 40  # 40-59 低置信度，标记需澄清
-      skip: 40                # < 40 极低置信度，跳过并回复 reviewer
+      auto_fix: 80 # >= 80 高置信度，自动修复
+      ask_user: 60 # 60-79 中置信度，询问用户后处理
+      need_clarification: 40 # 40-59 低置信度，标记需澄清
+      skip: 39 # < 40 极低置信度，跳过并回复 reviewer
 
     # 优先级定义
     # batch_size 语义:
@@ -139,7 +154,7 @@ stacks:
         name: "blocker"
         description: "阻塞上线的安全/数据问题"
         auto_fix: true
-        batch_size: 1   # 逐个处理，确保每个 blocker 被单独验证
+        batch_size: 1 # 逐个处理，确保每个 blocker 被单独验证
       P1:
         name: "critical"
         description: "核心功能缺陷"
@@ -148,13 +163,13 @@ stacks:
       P2:
         name: "major"
         description: "重要改进"
-        auto_fix: false  # 询问用户
-        batch_size: 5    # 每次向用户展示 5 条评论供确认
+        auto_fix: false # 询问用户
+        batch_size: 5 # 每次向用户展示 5 条评论供确认
       P3:
         name: "minor"
         description: "建议/风格问题"
         auto_fix: false
-        batch_size: 10   # 低优先级可批量展示更多
+        batch_size: 10 # 低优先级可批量展示更多
 
     # GitHub API 配置
     github:
@@ -165,27 +180,49 @@ stacks:
     # 不变式: 所有权重之和必须等于 1.0
     # 当前: 0.4 + 0.3 + 0.2 + 0.1 = 1.0 ✓
     confidence_factors:
-      clarity: 0.4          # 评论明确性
-      specificity: 0.3      # 具体示例
-      context: 0.2          # 上下文理解
-      reproducibility: 0.1  # 可复现性
+      clarity: 0.4 # 评论明确性
+      specificity: 0.3 # 具体示例
+      context: 0.2 # 上下文理解
+      reproducibility: 0.1 # 可复现性
 
     # 优先级分类关键词
     classification_keywords:
       security:
-        patterns: ["security", "vulnerability", "injection", "XSS", "CSRF", "leak", "exposed", "sensitive"]
+        patterns:
+          [
+            "security",
+            "vulnerability",
+            "injection",
+            "XSS",
+            "CSRF",
+            "leak",
+            "exposed",
+            "sensitive",
+          ]
         priority_boost: 2
       critical:
-        patterns: ["crash", "data loss", "downtime", "blocker", "production", "urgent"]
+        patterns:
+          ["crash", "data loss", "downtime", "blocker", "production", "urgent"]
         priority: "P0"
       bug:
-        patterns: ["bug", "broken", "fail", "error", "incorrect", "doesn't work", "not working"]
+        patterns:
+          [
+            "bug",
+            "broken",
+            "fail",
+            "error",
+            "incorrect",
+            "doesn't work",
+            "not working",
+          ]
         priority: "P1"
       improvement:
-        patterns: ["should", "better", "improve", "optimize", "refactor", "performance"]
+        patterns:
+          ["should", "better", "improve", "optimize", "refactor", "performance"]
         priority: "P2"
       suggestion:
-        patterns: ["consider", "maybe", "could", "nit", "style", "minor", "typo"]
+        patterns:
+          ["consider", "maybe", "could", "nit", "style", "minor", "typo"]
         priority: "P3"
 
     # 技术栈路径映射（可被项目配置覆盖）

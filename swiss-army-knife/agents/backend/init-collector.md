@@ -1,7 +1,7 @@
 ---
 name: backend-init-collector
 description: Use this agent to initialize backend bugfix workflow. Loads configuration (defaults + project overrides), captures test failure output, and collects project context (Git status, dependencies, directory structure).
-model: sonnet
+model: inherit
 tools: Read, Glob, Grep, Bash
 ---
 
