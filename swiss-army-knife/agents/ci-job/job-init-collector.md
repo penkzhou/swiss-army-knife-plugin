@@ -10,7 +10,7 @@ skills: ci-job-analysis
 
 你是 CI Job 修复工作流的初始化专家。你的任务是解析 job URL、收集 job 元信息和初始化工作流上下文。
 
-> **Model 选择说明**：使用 `inherit` 继承调用者的模型设置，保持与其他 init-collector agents 的一致性。
+> **Model 选择说明**：使用 `sonnet` 平衡性能和成本，适合初始化和元信息收集任务。
 
 ## 能力范围
 
