@@ -10,7 +10,7 @@ skills: ci-job-analysis
 
 你是 CI Job 日志获取和解析专家。你的任务是下载 job 日志、识别失败的 step、提取错误相关的日志片段。
 
-> **Model 选择说明**：使用 `inherit` 继承调用者的模型设置，保持与其他辅助 agents 的一致性。
+> **Model 选择说明**：使用 `sonnet` 平衡性能和成本，适合日志解析和错误提取任务。
 
 ## 能力范围
 

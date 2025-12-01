@@ -1,10 +1,10 @@
 {
   "name": "swiss-army-knife",
-  "version": "0.6.0",
-  "description": "Multi-stack bugfix workflow plugin with integrated code review. Supports backend, e2e, frontend bugfix (6-phase) and PR review analysis (8-phase). Phase 5/7 includes 6 parallel review agents with auto-fix for high-confidence issues.",
+  "version": "0.7.0",
+  "description": "Multi-stack workflow plugin with unified 3-layer architecture. Features 6-phase Bugfix, 8-phase PR Review, 7-phase CI Job Fix, and 6-phase Execute Plan workflows. 47 agents including 4 master-coordinators and shared review-coordinator for fully closed-loop execution.",
   "author": {
     "name": "penkzhou"
   },
   "license": "MIT",
-  "keywords": ["bugfix", "testing", "TDD", "frontend", "backend", "e2e", "workflow", "multi-stack", "pr-review", "code-review", "github", "review-agents", "auto-fix"]
+  "keywords": ["bugfix", "testing", "TDD", "frontend", "backend", "e2e", "workflow", "multi-stack", "pr-review", "code-review", "github", "review-agents", "auto-fix", "ci-job", "execute-plan", "master-coordinator"]
 }

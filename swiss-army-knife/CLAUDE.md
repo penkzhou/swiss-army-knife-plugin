@@ -15,129 +15,129 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 架构
 
+### 统一三层架构
+
+所有工作流采用相同的三层架构，实现完全闭环：
+
+```text
+命令层 (*.md) ─── 仅参数解析 + 调用 master-coordinator
+    │
+    └── master-coordinator agent ─── 协调各 Phase、置信度决策、用户交互
+            │
+            ├── Phase agents (各工作流专有)
+            │
+            └── review-coordinator agent (共享) ─── 管理 Review-Fix 循环
+                    ├── 6 个 review agents (并行)
+                    └── review-fixer agent (循环)
+```
+
 ### 工作流流程
 
 #### Bugfix 工作流 (6 阶段)
 
 ```text
-/fix-backend / /fix-e2e / /fix-frontend 命令 → Phase 0-5 协调
+/fix-backend / /fix-e2e / /fix-frontend 命令 → 参数解析
      │
-     ├─ Phase 0: 问题收集与分类
-     │   ├─ init-collector agent → 加载配置、收集测试输出、项目信息
-     │   └─ error-analyzer agent → 解析和分类错误
-     ├─ Phase 1: root-cause agent → 带置信度评分的诊断分析
-     ├─ Phase 2: bugfix-solution agent (stack) → 设计 TDD 修复方案
-     ├─ Phase 3: bugfix-doc-writer agent (stack) → 生成 bugfix 文档
-     ├─ Phase 4: bugfix-executor agent (stack) → TDD 实现 (RED-GREEN-REFACTOR)
-     └─ Phase 5: 验证、审查与沉淀
-         ├─ quality-gate agent → 质量门禁检查
-         ├─ 6 个 review agents (并行) → 代码审查
-         │   ├─ review-code-reviewer      # 通用代码审查
-         │   ├─ review-silent-failure-hunter  # 静默失败检测
-         │   ├─ review-code-simplifier    # 代码简化
-         │   ├─ review-test-analyzer      # 测试覆盖分析
-         │   ├─ review-comment-analyzer   # 注释准确性
-         │   └─ review-type-design-analyzer   # 类型设计分析
-         ├─ review-fixer agent → 自动修复 ≥80 置信度问题 (最多 3 次循环)
-         └─ bugfix-knowledge agent (stack) → 知识沉淀
+     └── bugfix-master-coordinator (共享，通过 stack 参数区分)
+             │
+             ├─ Phase 0: 问题收集与分类
+             │   ├─ init-collector agent → 加载配置、收集测试输出、项目信息
+             │   └─ error-analyzer agent → 解析和分类错误
+             ├─ Phase 1: root-cause agent → 带置信度评分的诊断分析 + 置信度决策
+             ├─ Phase 2: bugfix-solution agent → 设计 TDD 修复方案
+             ├─ Phase 3: bugfix-doc-writer agent → 生成 bugfix 文档
+             ├─ Phase 4: bugfix-executor agent → TDD 实现 (RED-GREEN-REFACTOR)
+             └─ Phase 5: review-coordinator (共享) + bugfix-knowledge
+                     ├─ 6 个 review agents (并行)
+                     └─ review-fixer agent (最多 3 次循环)
 ```
 
 #### PR Review 工作流 (8 阶段，Phase 0-7)
 
 ```text
-/fix-pr-review <PR_NUMBER> 命令 → Phase 0-7 协调
+/fix-pr-review <PR_NUMBER> 命令 → 参数解析
      │
-     ├─ Phase 0: 初始化
-     │   └─ init-collector agent → 验证 gh CLI、获取 PR 元信息、最后 commit 时间
-     ├─ Phase 1: 评论获取
-     │   └─ comment-fetcher agent → 获取所有 review comments 和 issue comments
-     ├─ Phase 2: 评论过滤
-     │   └─ comment-filter agent → 过滤已解决评论、CI 自动报告、空内容评论
-     ├─ Phase 3: 评论分类
-     │   └─ comment-classifier agent → 置信度评估、优先级分类、技术栈识别
-     ├─ Phase 4: 修复协调
-     │   └─ fix-coordinator agent → 调用对应技术栈的 bugfix 工作流
-     ├─ Phase 5: 回复生成
-     │   └─ response-generator agent → 基于修复结果生成回复
-     ├─ Phase 6: 回复提交
-     │   └─ response-submitter agent → 通过 gh CLI 提交回复到 PR
-     └─ Phase 7: 审查、汇总与沉淀
-         ├─ 6 个 review agents (并行) → 代码审查
-         ├─ review-fixer agent → 自动修复 ≥80 置信度问题 (最多 3 次循环)
-         ├─ knowledge-writer agent → 高价值修复沉淀到知识模式库
-         └─ summary-reporter agent → 生成处理报告
+     └── pr-review-master-coordinator
+             │
+             ├─ Phase 0: init-collector agent → 验证 gh CLI、获取 PR 元信息
+             ├─ Phase 1: comment-fetcher agent → 获取 review/issue comments
+             ├─ Phase 2: comment-filter agent → 过滤已解决、CI 自动报告
+             ├─ Phase 3: comment-classifier agent → 置信度评估、优先级分类
+             ├─ Phase 4: fix-coordinator agent → 置信度决策 + 调用 bugfix 工作流
+             ├─ Phase 5: response-generator agent → 生成回复内容
+             ├─ Phase 6: response-submitter agent → 提交回复到 PR
+             └─ Phase 7: review-coordinator (共享) + knowledge-writer + summary-reporter
+                     ├─ 6 个 review agents (并行)
+                     └─ review-fixer agent (最多 3 次循环)
 ```
 
 #### CI Job 失败修复工作流 (7 阶段，Phase 0-6)
 
 ```text
-/fix-failed-job <JOB_URL> 命令 → Phase 0-6 协调
+/fix-failed-job <JOB_URL> 命令 → 参数解析
      │
-     ├─ Phase 0: 初始化
-     │   └─ job-init-collector agent → 解析 URL、验证 gh CLI、获取 Job 元信息
-     ├─ Phase 1: 日志获取
-     │   └─ job-log-fetcher agent → 下载日志、识别失败 step、提取错误
-     ├─ Phase 2: 失败分类
-     │   └─ job-failure-classifier agent → 失败类型分类、技术栈识别、置信度评估
-     ├─ Phase 3: 根因分析
-     │   └─ job-root-cause agent → 深度分析、历史匹配、生成修复建议
-     ├─ Phase 4: 修复执行
-     │   └─ job-fix-coordinator agent → 置信度驱动决策、调用 bugfix 工作流
-     ├─ Phase 5: 验证与审查
-     │   ├─ 本地验证 (tests, lint, typecheck)
-     │   ├─ 6 个 review agents (并行) → 代码审查
-     │   └─ review-fixer agent → 自动修复 ≥80 置信度问题 (最多 3 次循环)
-     └─ Phase 6: 汇总与可选重试
-         └─ job-summary-reporter agent → 报告、可选 git commit、可选 job retry
+     └── ci-job-master-coordinator
+             │
+             ├─ Phase 0: init-collector agent → 解析 URL、验证 gh CLI、获取 Job 元信息
+             ├─ Phase 1: log-fetcher agent → 下载日志、识别失败 step、提取错误
+             ├─ Phase 2: failure-classifier agent → 失败类型分类、技术栈识别
+             ├─ Phase 3: root-cause agent → 深度分析、历史匹配、生成修复建议
+             ├─ Phase 4: fix-coordinator agent → 置信度决策 + 调用 bugfix 工作流
+             ├─ Phase 5: review-coordinator (共享) + 本地验证
+             │       ├─ 6 个 review agents (并行)
+             │       └─ review-fixer agent (最多 3 次循环)
+             └─ Phase 6: summary-reporter agent → 报告、可选 git commit、可选 job retry
 ```
 
 #### 计划执行工作流 (6 阶段，Phase 0-5)
 
 ```text
-/execute-plan <PLAN_FILE> 命令 → Phase 0-5 协调
+/execute-plan <PLAN_FILE> 命令 → 参数解析
      │
-     ├─ Phase 0: 初始化与计划解析
-     │   └─ execute-plan-init-collector agent → 加载配置、解析计划文件、收集项目信息
-     ├─ Phase 1: 计划验证与依赖分析
-     │   └─ execute-plan-validator agent → 验证任务、分析依赖、生成执行顺序
-     ├─ Phase 2: 方案细化（可选，--fast 跳过）
-     │   └─ bugfix-solution agent → 为每个任务生成 TDD 计划
-     ├─ Phase 3: 批次执行
-     │   └─ execute-plan-executor-coordinator agent → 批次执行、TDD 流程、置信度决策
-     ├─ Phase 4: 验证与 Review 审查
-     │   ├─ 完整验证 (tests, lint, typecheck)
-     │   ├─ 6 个 review agents (并行) → 代码审查
-     │   └─ review-fixer agent → 自动修复 ≥80 置信度问题 (最多 3 次循环)
-     └─ Phase 5: 汇总与知识沉淀
-         ├─ execute-plan-summary-reporter agent → 生成执行报告
-         └─ bugfix-knowledge agent → 知识沉淀
-```
+     └── execute-plan-master-coordinator
+             │
+             ├─ Phase 0: init-collector agent → 加载配置、解析计划文件、收集项目信息
+             ├─ Phase 1: validator agent → 验证任务、分析依赖 + 置信度决策
+             ├─ Phase 2: bugfix-solution agent → 为每个任务生成 TDD 计划（可选）
+             ├─ Phase 3: executor-coordinator agent → 批次执行、TDD 流程
+             ├─ Phase 4: review-coordinator (共享) + 完整验证
+             │       ├─ 6 个 review agents (并行)
+             │       └─ review-fixer agent (最多 3 次循环)
+             └─ Phase 5: summary-reporter agent + bugfix-knowledge
 
 ### 组件结构
 
-插件采用多技术栈架构：
+插件采用多技术栈架构，共 47 个 agents：
 
-- **Commands**：
-  - `commands/fix-backend.md`、`commands/fix-e2e.md`、`commands/fix-frontend.md` - 按技术栈分离的 bugfix 协调器
-  - `commands/fix-pr-review.md` - PR Code Review 处理协调器
-  - `commands/fix-failed-job.md` - CI Job 失败修复协调器
-  - `commands/execute-plan.md` - 计划执行协调器
+- **Commands**（6 个）：仅参数解析 + 调用 master-coordinator
+  - `commands/fix-backend.md`、`commands/fix-e2e.md`、`commands/fix-frontend.md` - Bugfix 入口
+  - `commands/fix-pr-review.md` - PR Review 入口
+  - `commands/fix-failed-job.md` - CI Job 修复入口
+  - `commands/execute-plan.md` - 计划执行入口
+- **Master Coordinators**（4 个）：工作流总协调器，管理 Phase 间状态、置信度决策、用户交互
+  - `agents/bugfix/master-coordinator.md` - 协调 Bugfix Phase 0-5（共享，通过 stack 参数区分）
+  - `agents/pr-review/master-coordinator.md` - 协调 PR Review Phase 0-7
+  - `agents/ci-job/master-coordinator.md` - 协调 CI Job Phase 0-6
+  - `agents/execute-plan/master-coordinator.md` - 协调 Execute Plan Phase 0-5
+- **Review Coordinator**（共享组件）：
+  - `agents/review/review-coordinator.md` - 管理 Review-Fix 循环，被所有工作流复用
 - **Agents**：按技术栈和功能组织
-  - `agents/bugfix/`：通用 Bugfix agents（doc-writer、executor、knowledge、solution），接受 `stack` 参数区分技术栈
-  - `agents/backend/`：后端专用 agents（init-collector、error-analyzer、root-cause、quality-gate）
-  - `agents/e2e/`：端到端测试专用 agents（init-collector、error-analyzer、root-cause、quality-gate）
-  - `agents/frontend/`：前端专用 agents（init-collector、error-analyzer、root-cause、quality-gate）
-  - `agents/pr-review/`：PR Review 专用 agents（init-collector、comment-fetcher、comment-filter、comment-classifier、fix-coordinator、response-generator、response-submitter、knowledge-writer、summary-reporter）
-  - `agents/ci-job/`：CI Job 修复专用 agents（ci-job-init-collector、ci-job-log-fetcher、ci-job-failure-classifier、ci-job-root-cause、ci-job-fix-coordinator、ci-job-summary-reporter）
-  - `agents/execute-plan/`：计划执行专用 agents（execute-plan-init-collector、execute-plan-validator、execute-plan-executor-coordinator、execute-plan-summary-reporter）
-  - `agents/review/`：通用 Review agents（在所有工作流的 Phase 5/6/7 中并行执行）
-    - `code-reviewer.md` - 通用代码审查、项目规范合规性检查
-    - `silent-failure-hunter.md` - 静默失败和错误处理检测
-    - `code-simplifier.md` - 代码简化和可维护性提升
-    - `test-analyzer.md` - 测试覆盖质量分析
-    - `comment-analyzer.md` - 注释准确性和完整性检查
-    - `type-design-analyzer.md` - 类型设计和封装性分析
-    - `review-fixer.md` - 自动修复置信度 ≥80 的问题
+  - `agents/bugfix/`（5 个）：通用 Bugfix agents（master-coordinator、doc-writer、executor、knowledge、solution）
+  - `agents/backend/`（4 个）：后端专用 agents（init-collector、error-analyzer、root-cause、quality-gate）
+  - `agents/e2e/`（4 个）：E2E 测试专用 agents（init-collector、error-analyzer、root-cause、quality-gate）
+  - `agents/frontend/`（4 个）：前端专用 agents（init-collector、error-analyzer、root-cause、quality-gate）
+  - `agents/pr-review/`（10 个）：PR Review agents（master-coordinator、init-collector、comment-fetcher、comment-filter、comment-classifier、fix-coordinator、response-generator、response-submitter、knowledge-writer、summary-reporter）
+  - `agents/ci-job/`（7 个）：CI Job 修复 agents（master-coordinator、init-collector、log-fetcher、failure-classifier、root-cause、fix-coordinator、summary-reporter）
+  - `agents/execute-plan/`（5 个）：计划执行 agents（master-coordinator、init-collector、validator、executor-coordinator、summary-reporter）
+  - `agents/review/`（8 个）：通用 Review agents（在所有工作流中并行执行）
+    - `review-coordinator.md` (`name: review-coordinator`) - 管理 Review-Fix 循环（共享）
+    - `code-reviewer.md` (`name: review-code-reviewer`) - 通用代码审查、项目规范合规性检查
+    - `silent-failure-hunter.md` (`name: review-silent-failure-hunter`) - 静默失败和错误处理检测
+    - `code-simplifier.md` (`name: review-code-simplifier`) - 代码简化和可维护性提升
+    - `test-analyzer.md` (`name: review-test-analyzer`) - 测试覆盖质量分析
+    - `comment-analyzer.md` (`name: review-comment-analyzer`) - 注释准确性和完整性检查
+    - `type-design-analyzer.md` (`name: review-type-design-analyzer`) - 类型设计和封装性分析
+    - `review-fixer.md` (`name: review-fixer`) - 自动修复置信度 ≥80 的问题
 - **Skills**：按技术栈和功能提供知识库
   - `skills/bugfix-workflow/SKILL.md` - ✅ 完整，包含通用 TDD 流程、输出格式规范、置信度评分标准
   - `skills/backend-bugfix/SKILL.md` - ✅ 完整，包含 Python/FastAPI 错误模式和 pytest 最佳实践
@@ -148,13 +148,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `skills/knowledge-patterns/SKILL.md` - ✅ 完整，PR Review 修复模式库，支持智能相似度匹配和实例合并
   - `skills/elements-of-style/SKILL.md` - ✅ 完整，Strunk 写作规则，用于提升文档质量
   - `skills/execute-plan/SKILL.md` - ✅ 完整，计划格式规范、任务解析、依赖分析和批次执行策略
+  - `skills/coordinator-patterns/SKILL.md` - ✅ 完整，Coordinator 通用模式：Phase 验证、错误处理、TodoWrite 管理
 - **Configuration**：`.claude/swiss-army-knife.yaml` - 项目级配置，自定义命令和路径
 - **Hooks**：`hooks/hooks.json` - 在测试失败或代码变更时触发建议
 
 ### 组件职责
 
-- **Commands**：主协调器 - 解析参数，通过 Task 工具分发对应技术栈的 agent，处理决策点
-- **Agents**：专业化子 agent，具有特定的工具权限和输出格式（JSON），按技术栈组织
+- **Commands**：入口点 - 仅解析参数，调用对应的 master-coordinator（约 80-140 行）
+- **Master Coordinators**：工作流总协调器 - 管理所有 Phase 执行、状态传递、置信度决策、用户交互
+- **Review Coordinator**：Review-Fix 循环管理器 - 被所有工作流共享，消除重复代码
+- **Phase Agents**：专业化子 agent，具有特定的工具权限和输出格式（JSON），按技术栈组织
 - **Skills**：自动激活的知识库，按技术栈提供错误分类、置信度评分和 TDD 实践
 - **Configuration**：支持自定义测试命令、文档路径和最佳实践搜索关键词
 
