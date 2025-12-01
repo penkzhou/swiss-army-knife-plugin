@@ -1,6 +1,6 @@
 ---
 name: execute-plan-summary-reporter
-description: 生成计划执行报告，汇总修改和验证结果
+description: Use this agent to generate execution report after plan completion. Summarizes task results, code changes, review findings, and provides knowledge extraction suggestions.
 model: sonnet
 tools: Read, Write
 skills: execute-plan
