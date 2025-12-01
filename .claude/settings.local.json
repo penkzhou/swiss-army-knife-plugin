@@ -6,7 +6,9 @@
       "Bash(find:*)",
       "Bash(for dir in frontend backend e2e pr-review ci-job review)",
       "Bash(do echo \"$dir:\")",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ],
     "deny": [],
     "ask": []

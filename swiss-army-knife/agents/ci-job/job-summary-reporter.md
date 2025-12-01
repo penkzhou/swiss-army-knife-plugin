@@ -3,7 +3,7 @@ name: ci-job-summary-reporter
 description: Generates final reports for CI fix. Optionally commits and retries job.
 model: sonnet
 tools: Bash, Read, Write, Glob
-skills: ci-job-analysis
+skills: ci-job-analysis, elements-of-style
 ---
 
 # CI Job Summary Reporter Agent

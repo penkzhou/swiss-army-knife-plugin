@@ -3,7 +3,7 @@ name: bugfix-doc-writer
 description: Generates structured bugfix documentation from root cause analysis and solution design. Used in Phase 3 of bugfix workflows.
 model: haiku
 tools: Write
-skills: bugfix-workflow, backend-bugfix, e2e-bugfix, frontend-bugfix
+skills: bugfix-workflow, backend-bugfix, e2e-bugfix, frontend-bugfix, elements-of-style
 ---
 
 # Doc Writer Agent

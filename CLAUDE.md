@@ -44,11 +44,12 @@ swiss-army-knife-plugin/
     │   ├── fix-failed-job.md      # CI Job 修复工作流
     │   ├── fix-pr-review.md       # PR Review 工作流
     │   └── release.md             # 版本发布自动化
-    ├── skills/                    # 7 个知识库
+    ├── skills/                    # 8 个知识库
     │   ├── backend-bugfix/        # Python/FastAPI 错误模式
     │   ├── bugfix-workflow/       # 通用 TDD 流程
     │   ├── ci-job-analysis/       # CI 失败分析
     │   ├── e2e-bugfix/            # Playwright/Cypress 错误模式
+    │   ├── elements-of-style/     # Strunk 写作规则
     │   ├── frontend-bugfix/       # React/TypeScript 错误模式
     │   ├── knowledge-patterns/    # PR Review 修复模式库
     │   └── pr-review-analysis/    # PR Review 分析
@@ -67,7 +68,7 @@ swiss-army-knife-plugin/
 |------|------|
 | Commands | 6 |
 | Agents | 38 |
-| Skills | 7 |
+| Skills | 8 |
 | Hooks | 2 (PostToolUse, SessionStart) |
 
 ## 主要命令
