@@ -11,6 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 1. **标准化 6 阶段 bugfix 工作流**：支持多技术栈（后端、端到端、前端），通过 `/fix-backend`、`/fix-e2e`、`/fix-frontend` 命令协调
 2. **PR Code Review 处理工作流**：8 阶段流程 (Phase 0-7)，通过 `/fix-pr-review` 命令自动分析和修复 PR 中的代码审查评论
 3. **CI Job 失败修复工作流**：7 阶段流程 (Phase 0-6)，通过 `/fix-failed-job` 命令自动分析和修复 GitHub Actions 失败的 job
+4. **计划执行工作流**：6 阶段流程 (Phase 0-5)，通过 `/execute-plan` 命令执行实施计划，支持 TDD、批次执行和完整代码审查
 
 ## 架构
 
@@ -90,6 +91,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
          └─ job-summary-reporter agent → 报告、可选 git commit、可选 job retry
 ```
 
+#### 计划执行工作流 (6 阶段，Phase 0-5)
+
+```text
+/execute-plan <PLAN_FILE> 命令 → Phase 0-5 协调
+     │
+     ├─ Phase 0: 初始化与计划解析
+     │   └─ execute-plan-init-collector agent → 加载配置、解析计划文件、收集项目信息
+     ├─ Phase 1: 计划验证与依赖分析
+     │   └─ execute-plan-validator agent → 验证任务、分析依赖、生成执行顺序
+     ├─ Phase 2: 方案细化（可选，--fast 跳过）
+     │   └─ bugfix-solution agent → 为每个任务生成 TDD 计划
+     ├─ Phase 3: 批次执行
+     │   └─ execute-plan-executor-coordinator agent → 批次执行、TDD 流程、置信度决策
+     ├─ Phase 4: 验证与 Review 审查
+     │   ├─ 完整验证 (tests, lint, typecheck)
+     │   ├─ 6 个 review agents (并行) → 代码审查
+     │   └─ review-fixer agent → 自动修复 ≥80 置信度问题 (最多 3 次循环)
+     └─ Phase 5: 汇总与知识沉淀
+         ├─ execute-plan-summary-reporter agent → 生成执行报告
+         └─ bugfix-knowledge agent → 知识沉淀
+```
+
 ### 组件结构
 
 插件采用多技术栈架构：
@@ -98,6 +121,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `commands/fix-backend.md`、`commands/fix-e2e.md`、`commands/fix-frontend.md` - 按技术栈分离的 bugfix 协调器
   - `commands/fix-pr-review.md` - PR Code Review 处理协调器
   - `commands/fix-failed-job.md` - CI Job 失败修复协调器
+  - `commands/execute-plan.md` - 计划执行协调器
 - **Agents**：按技术栈和功能组织
   - `agents/bugfix/`：通用 Bugfix agents（doc-writer、executor、knowledge、solution），接受 `stack` 参数区分技术栈
   - `agents/backend/`：后端专用 agents（init-collector、error-analyzer、root-cause、quality-gate）
@@ -105,6 +129,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `agents/frontend/`：前端专用 agents（init-collector、error-analyzer、root-cause、quality-gate）
   - `agents/pr-review/`：PR Review 专用 agents（init-collector、comment-fetcher、comment-filter、comment-classifier、fix-coordinator、response-generator、response-submitter、knowledge-writer、summary-reporter）
   - `agents/ci-job/`：CI Job 修复专用 agents（ci-job-init-collector、ci-job-log-fetcher、ci-job-failure-classifier、ci-job-root-cause、ci-job-fix-coordinator、ci-job-summary-reporter）
+  - `agents/execute-plan/`：计划执行专用 agents（execute-plan-init-collector、execute-plan-validator、execute-plan-executor-coordinator、execute-plan-summary-reporter）
   - `agents/review/`：通用 Review agents（在所有工作流的 Phase 5/6/7 中并行执行）
     - `code-reviewer.md` - 通用代码审查、项目规范合规性检查
     - `silent-failure-hunter.md` - 静默失败和错误处理检测
@@ -122,6 +147,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `skills/ci-job-analysis/SKILL.md` - ✅ 完整，包含 CI 失败类型分类、置信度评估、技术栈识别和常见错误模式
   - `skills/knowledge-patterns/SKILL.md` - ✅ 完整，PR Review 修复模式库，支持智能相似度匹配和实例合并
   - `skills/elements-of-style/SKILL.md` - ✅ 完整，Strunk 写作规则，用于提升文档质量
+  - `skills/execute-plan/SKILL.md` - ✅ 完整，计划格式规范、任务解析、依赖分析和批次执行策略
 - **Configuration**：`.claude/swiss-army-knife.yaml` - 项目级配置，自定义命令和路径
 - **Hooks**：`hooks/hooks.json` - 在测试失败或代码变更时触发建议
 
