@@ -1,6 +1,6 @@
 ---
 name: execute-plan-init-collector
-description: 初始化计划执行工作流，解析计划文件，收集项目上下文
+description: Use this agent to initialize execute-plan workflow. Parses plan files (Markdown/YAML), loads config, and collects project context including Git status and tech stack detection.
 model: sonnet
 tools: Read, Glob, Grep, Bash
 skills: execute-plan

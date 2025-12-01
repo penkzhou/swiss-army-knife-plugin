@@ -1,6 +1,6 @@
 ---
 name: execute-plan-executor-coordinator
-description: 协调任务批次执行，管理 TDD 流程，处理置信度决策
+description: Use this agent to coordinate batch execution of plan tasks. Manages TDD workflow (RED-GREEN-REFACTOR), handles confidence-driven decisions, and tracks execution progress with user confirmation checkpoints.
 model: opus
 tools: Task, Read, Write, Edit, Bash, TodoWrite, AskUserQuestion
 skills: execute-plan, bugfix-workflow

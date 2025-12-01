@@ -1,6 +1,6 @@
 ---
 name: execute-plan-validator
-description: 验证计划可执行性，分析任务依赖关系，生成执行顺序
+description: Use this agent to validate plan executability. Analyzes task dependencies, detects cyclic dependencies, and generates topologically sorted execution order with confidence scoring.
 model: opus
 tools: Read, Glob, Grep
 skills: execute-plan
