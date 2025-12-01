@@ -29,14 +29,14 @@ swiss-army-knife-plugin/
     ├── CLAUDE.md                  # 插件开发指南（详细）
     ├── README.md                  # 插件使用说明
     ├── CHANGELOG.md               # 版本历史
-    ├── agents/                    # 37 个专业化 sub-agents
+    ├── agents/                    # 38 个专业化 sub-agents
     │   ├── backend/               # 后端专用 (4 个)
     │   ├── bugfix/                # 通用 Bugfix (4 个)
     │   ├── ci-job/                # CI Job 修复 (6 个)
     │   ├── e2e/                   # E2E 测试专用 (4 个)
     │   ├── frontend/              # 前端专用 (4 个)
     │   ├── pr-review/             # PR Review (9 个)
-    │   └── review/                # 通用 Review (6 个)
+    │   └── review/                # 通用 Review (7 个)
     ├── commands/                  # 6 个斜杠命令
     │   ├── fix-backend.md         # 后端 Bugfix 工作流
     │   ├── fix-e2e.md             # E2E Bugfix 工作流
@@ -66,7 +66,7 @@ swiss-army-knife-plugin/
 | 类别 | 数量 |
 |------|------|
 | Commands | 6 |
-| Agents | 37 |
+| Agents | 38 |
 | Skills | 7 |
 | Hooks | 2 (PostToolUse, SessionStart) |
 
@@ -116,9 +116,9 @@ Phase 0: 初始化 + 错误分析 → Phase 1: 根因诊断 → Phase 2: 方案�
 - **40-59**：展示分析，建议手动处理
 - **<40**：跳过并收集更多信息
 
-### 2. 6 个并行 Review Agents
+### 2. 6+1 Review Agents 架构
 
-在 Phase 5（Bugfix）或 Phase 7（PR Review）中并行执行：
+在 Phase 5（Bugfix）或 Phase 7（PR Review）中，**6 个审查 agents 并行执行**：
 
 - `code-reviewer` - 通用代码质量审查
 - `silent-failure-hunter` - 静默失败检测
@@ -127,7 +127,7 @@ Phase 0: 初始化 + 错误分析 → Phase 1: 根因诊断 → Phase 2: 方案�
 - `comment-analyzer` - 注释准确性检查
 - `type-design-analyzer` - 类型设计分析
 
-发现的 ≥80 置信度问题由 `review-fixer` agent 自动修复，最多 3 次循环。
+**+ 1 个修复 agent 串行执行**：发现的 ≥80 置信度问题由 `review-fixer` agent 自动修复，最多 3 次循环。
 
 ### 3. 知识模式沉淀
 
@@ -186,9 +186,9 @@ stacks:
 
 ## 相关文档
 
-- [Claude Code 概述](https://docs.anthropic.com/en/docs/claude-code/overview)
+- [Claude Code 概述](https://code.claude.com/docs/en/overview)
 - [Claude Code 插件介绍](https://www.anthropic.com/news/claude-code-plugins)
 - [Agent Skills 介绍](https://www.anthropic.com/news/skills)
-- [Sub-agents 指南](https://docs.claude.com/en/docs/claude-code/sub-agents)
-- [Hooks 参考文档](https://docs.anthropic.com/en/docs/claude-code/hooks)
+- [Sub-agents 指南](https://code.claude.com/docs/en/sub-agents)
+- [Hooks 参考文档](https://code.claude.com/docs/en/hooks)
 - [Claude Code 最佳实践](https://www.anthropic.com/engineering/claude-code-best-practices)
