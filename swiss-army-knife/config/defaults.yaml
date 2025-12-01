@@ -336,3 +336,59 @@ stacks:
       ruff: "ruff check --fix"
       prettier: "npx prettier --write"
       biome: "npx biome check --apply"
+
+  execute_plan:
+    name: "Execute Plan Workflow"
+
+    # 批次配置
+    batch:
+      default_size: 3           # 默认批次大小
+      max_parallel: 2           # 最大并行任务数
+      pause_between: true       # 批次间暂停确认
+
+    # 置信度阈值 (不变式: auto_execute > ask_user > suggest_manual)
+    confidence_threshold:
+      auto_execute: 80          # >= 80 自动执行
+      ask_user: 60              # 60-79 询问用户
+      suggest_manual: 40        # 40-59 建议手动
+      # < 40 跳过
+
+    # 支持的计划格式
+    plan_formats:
+      - markdown
+      - yaml
+
+    # 任务检测模式
+    task_detection:
+      markdown_patterns:
+        - "^## Task \\d+:"      # ## Task 1: xxx
+        - "^### \\d+\\."        # ### 1. xxx
+        - "^- \\[ \\]"          # - [ ] xxx (checklist)
+        - "^\\d+\\. \\*\\*"     # 1. **xxx** (numbered bold)
+      yaml_keys:
+        - "tasks"
+        - "steps"
+        - "actions"
+
+    # 文档配置
+    docs:
+      execution_reports_dir: "docs/execution-reports"
+      # bugfix_dir, best_practices_dir 继承自 defaults.docs
+
+    # Review 配置
+    review:
+      enabled: true
+      max_fix_iterations: 3
+      confidence_threshold: 80
+
+    # 技术栈检测（用于选择合适的执行策略）
+    stack_detection:
+      backend:
+        patterns: ["pytest", "python", "FastAPI", "Django", "flask"]
+        file_patterns: ["**/*.py", "tests/backend/**", "tests/unit/**"]
+      frontend:
+        patterns: ["jest", "vitest", "react", "vue", "typescript"]
+        file_patterns: ["**/*.tsx", "**/*.jsx", "tests/frontend/**"]
+      e2e:
+        patterns: ["playwright", "cypress", "e2e"]
+        file_patterns: ["e2e/**", "tests/e2e/**", "playwright/**"]
