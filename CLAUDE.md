@@ -186,7 +186,9 @@ stacks:
 
 ## 相关文档
 
-- [Claude Code 插件文档](https://docs.anthropic.com/en/docs/claude-code/plugins)
-- [Agent Skills 最佳实践](https://docs.anthropic.com/en/docs/claude-code/skills)
-- [Sub-agents 指南](https://docs.anthropic.com/en/docs/claude-code/sub-agents)
-- [Hooks 开发指南](https://docs.anthropic.com/en/docs/claude-code/hooks)
+- [Claude Code 概述](https://docs.anthropic.com/en/docs/claude-code/overview)
+- [Claude Code 插件介绍](https://www.anthropic.com/news/claude-code-plugins)
+- [Agent Skills 介绍](https://www.anthropic.com/news/skills)
+- [Sub-agents 指南](https://docs.claude.com/en/docs/claude-code/sub-agents)
+- [Hooks 参考文档](https://docs.anthropic.com/en/docs/claude-code/hooks)
+- [Claude Code 最佳实践](https://www.anthropic.com/engineering/claude-code-best-practices)

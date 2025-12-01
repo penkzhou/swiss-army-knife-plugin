@@ -230,12 +230,12 @@ allowed-tools: Read, Write, Task   # 显式工具权限（逗号分隔）
 
 开发 Claude Code 插件时，请参考官方文档：
 
-- **[Claude Code 插件文档](https://code.claude.com/docs/en/plugins)**：完整的插件开发指南，包含 API 参考、架构模式和最佳实践
-- **[插件 API 参考](https://code.claude.com/docs/en/plugins-reference)**：插件组件的详细规范，包括 commands、agents、skills、hooks 的 frontmatter 字段定义
-- **[斜杠命令指南](https://code.claude.com/docs/en/slash-commands)**：自定义斜杠命令的创建和使用，包含 frontmatter 配置和动态参数
-- **[Agent Skills 最佳实践](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices)**：编写高质量 skill 的指南和模式
-- **[Sub-agents 最佳实践](https://code.claude.com/docs/en/sub-agents)**：设计和协调子 agent 的指南，包含 Task 工具使用模式
-- **[Hooks 开发指南](https://code.claude.com/docs/en/hooks)**：事件驱动自动化和工作流触发器的实现指南
+- **[Claude Code 概述](https://docs.anthropic.com/en/docs/claude-code/overview)**：Claude Code 官方文档入口
+- **[Claude Code 插件介绍](https://www.anthropic.com/news/claude-code-plugins)**：插件功能介绍和使用指南
+- **[Agent Skills 介绍](https://www.anthropic.com/news/skills)**：Skills 功能介绍和最佳实践
+- **[Sub-agents 指南](https://docs.claude.com/en/docs/claude-code/sub-agents)**：设计和协调子 agent 的指南
+- **[Hooks 参考文档](https://docs.anthropic.com/en/docs/claude-code/hooks)**：事件驱动自动化和钩子配置参考
+- **[Claude Code 最佳实践](https://www.anthropic.com/engineering/claude-code-best-practices)**：官方最佳实践指南
 
 ## 领域知识
 
