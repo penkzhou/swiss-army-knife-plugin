@@ -121,6 +121,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `skills/pr-review-analysis/SKILL.md` - ✅ 完整，包含置信度评估、优先级分类、技术栈识别和回复最佳实践
   - `skills/ci-job-analysis/SKILL.md` - ✅ 完整，包含 CI 失败类型分类、置信度评估、技术栈识别和常见错误模式
   - `skills/knowledge-patterns/SKILL.md` - ✅ 完整，PR Review 修复模式库，支持智能相似度匹配和实例合并
+  - `skills/elements-of-style/SKILL.md` - ✅ 完整，Strunk 写作规则，用于提升文档质量
 - **Configuration**：`.claude/swiss-army-knife.yaml` - 项目级配置，自定义命令和路径
 - **Hooks**：`hooks/hooks.json` - 在测试失败或代码变更时触发建议
 

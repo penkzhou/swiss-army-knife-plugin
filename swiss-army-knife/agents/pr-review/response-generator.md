@@ -3,7 +3,7 @@ name: pr-review-response-generator
 description: Generates GitHub reply content from fix results with appropriate tone.
 model: sonnet
 tools: Read
-skills: pr-review-analysis
+skills: pr-review-analysis, elements-of-style
 ---
 
 # PR Review Response Generator Agent

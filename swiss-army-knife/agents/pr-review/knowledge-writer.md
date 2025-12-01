@@ -3,7 +3,7 @@ name: pr-review-knowledge-writer
 description: 将高价值 PR Review 修复沉淀到知识模式库，支持智能合并。
 model: sonnet
 tools: Read, Write, Edit, Glob, Grep, Bash
-skills: knowledge-patterns
+skills: knowledge-patterns, pr-review-analysis, elements-of-style
 ---
 
 # Knowledge Writer Agent

@@ -3,7 +3,7 @@ name: bugfix-knowledge
 description: Extracts learnings from completed bugfixes and updates documentation. Used in Phase 5 after quality gates pass.
 model: sonnet
 tools: Read, Write, Edit, Glob
-skills: bugfix-workflow, backend-bugfix, e2e-bugfix, frontend-bugfix
+skills: bugfix-workflow, backend-bugfix, e2e-bugfix, frontend-bugfix, elements-of-style
 ---
 
 > **Model 选择说明**：使用 `sonnet` 平衡性能和成本，适合知识提取和文档更新。

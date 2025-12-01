@@ -3,6 +3,7 @@ name: pr-review-summary-reporter
 description: Generates final reports for PR review with statistics and knowledge extraction.
 model: sonnet
 tools: Write, Read, Edit, Task
+skills: pr-review-analysis, elements-of-style
 ---
 
 # PR Review Summary Reporter Agent
