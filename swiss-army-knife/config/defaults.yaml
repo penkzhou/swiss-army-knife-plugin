@@ -392,3 +392,31 @@ stacks:
       e2e:
         patterns: ["playwright", "cypress", "e2e"]
         file_patterns: ["e2e/**", "tests/e2e/**", "playwright/**"]
+
+  # 依赖管理配置（用于 merge-dep-prs 命令）
+  dependency_management:
+    name: "Dependency Management"
+
+    # 技术栈依赖配置
+    frontend:
+      package_file: "frontend/package.json"
+      lock_command: "cd frontend && pnpm install"
+      keywords: ["package.json", "npm", "pnpm", "yarn", "node"]
+
+    backend:
+      package_file: "backend/pyproject.toml"
+      lock_command: "cd backend && uv lock --no-cache"
+      keywords: ["pyproject.toml", "requirements.txt", "pip", "uv", "poetry"]
+
+    # Bot 配置
+    bots:
+      all:
+        authors: ["app/renovate", "app/dependabot"]
+      renovate:
+        author: "app/renovate"
+      dependabot:
+        author: "app/dependabot"
+
+    # 提交模板
+    commit_message: "chore(deps): 合并依赖更新 ({date})"
+    branch_prefix: "chore/merge-dependencies-"

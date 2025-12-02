@@ -7,6 +7,41 @@
 
 ## [未发布]
 
+## [1.0.0] - 2025-12-02
+
+### 新增
+
+- **计划执行工作流（6 阶段）**：通过 `/execute-plan <PLAN_FILE>` 执行实施计划
+  - Phase 0: 初始化和计划解析（支持 Markdown/YAML 格式）
+  - Phase 1: 任务验证和依赖分析
+  - Phase 2: TDD 计划生成（可选）
+  - Phase 3: 批次执行和用户确认检查点
+  - Phase 4: 6+1 Review Agents 并行审查
+  - Phase 5: 总结报告和知识沉淀
+  - 支持 `--fast`、`--skip-review`、`--batch-size=N` 参数
+
+- **依赖合并命令**：通过 `/merge-dep-prs` 合并 Renovate/Dependabot 的依赖更新 PR
+  - 支持 `--bot=all|renovate|dependabot` 参数
+  - 支持 `--frontend-only`、`--backend-only` 技术栈过滤
+  - 支持 `--dry-run` 预览模式
+  - 直接修改依赖文件并重新生成 lock 文件，避免合并冲突
+
+- **coordinator-patterns Skill**：Coordinator 通用模式知识库
+  - Phase 验证和错误处理模式
+  - TodoWrite 管理最佳实践
+  - 状态传递和用户交互模式
+
+### 变更
+
+- 更新 execute-plan agent 描述为英文格式，符合 Claude Code 规范
+- 命令数量从 6 个增加到 8 个
+
+### 技术细节
+
+- 47 个 agents，包含 4 个 master-coordinators 和共享 review-coordinator
+- 10 个 skills 知识库
+- 完全闭环的三层架构（命令层 → master-coordinator → phase agents）
+
 ## [0.6.0] - 2025-12-01
 
 ### 新增
@@ -130,7 +165,8 @@
 - 置信度驱动的流程控制（≥60 自动继续，40-59 暂停询问，<40 停止收集信息）
 - 针对 5 种常见错误类型的专业化处理（mock_conflict 71%、type_mismatch 15%、async_timing 8%、render_issue 4%、cache_dependency 2%）
 
-[未发布]: https://github.com/penkzhou/swiss-army-knife-plugin/compare/v0.6.0...HEAD
+[未发布]: https://github.com/penkzhou/swiss-army-knife-plugin/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/penkzhou/swiss-army-knife-plugin/compare/v0.6.0...v1.0.0
 [0.6.0]: https://github.com/penkzhou/swiss-army-knife-plugin/compare/v0.5.0...v0.6.0
 [0.2.1]: https://github.com/penkzhou/swiss-army-knife-plugin/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/penkzhou/swiss-army-knife-plugin/compare/v0.1.0...v0.2.0
