@@ -38,12 +38,14 @@ swiss-army-knife-plugin/
     │   ├── frontend/              # 前端专用 (4 个)
     │   ├── pr-review/             # PR Review (10 个)
     │   └── review/                # 通用 Review (8 个)
-    ├── commands/                  # 6 个斜杠命令
+    ├── commands/                  # 8 个斜杠命令
+    │   ├── execute-plan.md        # 计划执行工作流
     │   ├── fix-backend.md         # 后端 Bugfix 工作流
     │   ├── fix-e2e.md             # E2E Bugfix 工作流
     │   ├── fix-frontend.md        # 前端 Bugfix 工作流
     │   ├── fix-failed-job.md      # CI Job 修复工作流
     │   ├── fix-pr-review.md       # PR Review 工作流
+    │   ├── merge-dep-prs.md       # 合并依赖更新 PR（Renovate/Dependabot）
     │   └── release.md             # 版本发布自动化
     ├── skills/                    # 10 个知识库
     │   ├── backend-bugfix/        # Python/FastAPI 错误模式
@@ -69,7 +71,7 @@ swiss-army-knife-plugin/
 
 | 类别 | 数量 |
 |------|------|
-| Commands | 6 |
+| Commands | 8 |
 | Agents | 47 |
 | Skills | 10 |
 | Hooks | 2 (PostToolUse, SessionStart) |
@@ -107,6 +109,7 @@ Phase 0: 初始化 + 错误分析 → Phase 1: 根因诊断 → Phase 2: 方案�
 
 | 命令 | 说明 |
 |------|------|
+| `/merge-dep-prs [--bot=...]` | 合并依赖更新 PR（Renovate/Dependabot） |
 | `/release [major\|minor\|patch]` | 自动化版本发布（更新 CHANGELOG, git tag） |
 
 ## 核心特性

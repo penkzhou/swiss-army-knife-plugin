@@ -12,6 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 2. **PR Code Review 处理工作流**：8 阶段流程 (Phase 0-7)，通过 `/fix-pr-review` 命令自动分析和修复 PR 中的代码审查评论
 3. **CI Job 失败修复工作流**：7 阶段流程 (Phase 0-6)，通过 `/fix-failed-job` 命令自动分析和修复 GitHub Actions 失败的 job
 4. **计划执行工作流**：6 阶段流程 (Phase 0-5)，通过 `/execute-plan` 命令执行实施计划，支持 TDD、批次执行和完整代码审查
+5. **依赖管理工具**：通过 `/merge-dep-prs` 命令合并依赖更新 PR（Renovate/Dependabot），减少 CI 成本
 
 ## 架构
 
@@ -109,11 +110,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 插件采用多技术栈架构，共 47 个 agents：
 
-- **Commands**（6 个）：仅参数解析 + 调用 master-coordinator
+- **Commands**（7 个）：仅参数解析 + 调用 master-coordinator
   - `commands/fix-backend.md`、`commands/fix-e2e.md`、`commands/fix-frontend.md` - Bugfix 入口
   - `commands/fix-pr-review.md` - PR Review 入口
   - `commands/fix-failed-job.md` - CI Job 修复入口
   - `commands/execute-plan.md` - 计划执行入口
+  - `commands/merge-dep-prs.md` - 依赖合并工具（Renovate/Dependabot）
 - **Master Coordinators**（4 个）：工作流总协调器，管理 Phase 间状态、置信度决策、用户交互
   - `agents/bugfix/master-coordinator.md` - 协调 Bugfix Phase 0-5（共享，通过 stack 参数区分）
   - `agents/pr-review/master-coordinator.md` - 协调 PR Review Phase 0-7
