@@ -42,6 +42,16 @@ git branch --show-current
 1. 基于 main 创建新的特性分支
 2. 询问用户分支名称，或根据改动内容自动生成
 
+**分支命名规则**：
+
+```text
+feat/<short-description>   # 新功能，如 feat/add-auth-module
+fix/<short-description>    # 修复问题，如 fix/login-timeout
+docs/<short-description>   # 文档更新，如 docs/api-reference
+refactor/<short-description> # 代码重构
+chore/<short-description>  # 构建/工具变更
+```
+
 **如果当前不是 main 分支**：
 
 1. 检查是否有远程分支：`git fetch origin && git branch -r | grep "origin/$(git branch --show-current)"`
@@ -97,7 +107,22 @@ git diff --cached --stat
 
 ### 3.1 检测项目 QA 命令
 
-按以下优先级检测项目使用的质量检查命令：
+**首先检测包管理器**（用于 Node.js 项目）：
+
+```bash
+# 检测包管理器
+if [ -f pnpm-lock.yaml ]; then
+  PKG_MANAGER="pnpm"
+elif [ -f yarn.lock ]; then
+  PKG_MANAGER="yarn"
+elif [ -f package-lock.json ]; then
+  PKG_MANAGER="npm"
+else
+  PKG_MANAGER="npm"  # 默认使用 npm
+fi
+```
+
+**然后按以下优先级检测项目使用的质量检查命令**：
 
 1. **Makefile**：检查是否存在 `make qa` 或 `make lint` 或 `make check`
 
@@ -120,21 +145,33 @@ git diff --cached --stat
 
    ```bash
    if [ -f pyproject.toml ]; then
-     # 可能使用 ruff、black、mypy 等
+     # 检查 ruff 配置
+     grep -q "\[tool.ruff" pyproject.toml && echo "ruff: ruff check ."
+     # 检查 black 配置
+     grep -q "\[tool.black" pyproject.toml && echo "black: black --check ."
+     # 检查 mypy 配置
+     grep -q "\[tool.mypy" pyproject.toml && echo "mypy: mypy ."
+     # 检查 pytest 配置
+     grep -q "\[tool.pytest" pyproject.toml && echo "pytest: pytest"
+     # 检查 poetry scripts
+     grep -q "\[tool.poetry.scripts" pyproject.toml && echo "poetry scripts available"
    fi
    ```
 
 ### 3.2 运行质量检查
 
-根据检测结果运行对应命令。常见映射：
+根据检测结果运行对应命令。使用上一步检测到的 `$PKG_MANAGER`：
 
 | 检测到 | 运行命令 |
 |--------|----------|
 | Makefile 有 `qa` | `make qa` |
 | Makefile 有 `lint` | `make lint` |
-| package.json 有 `lint` | `npm run lint` 或 `pnpm lint` |
-| package.json 有 `check` | `npm run check` |
+| package.json 有 `lint` | `$PKG_MANAGER run lint` |
+| package.json 有 `check` | `$PKG_MANAGER run check` |
+| package.json 有 `test` | `$PKG_MANAGER run test` |
 | pyproject.toml + ruff | `ruff check .` |
+| pyproject.toml + black | `black --check .` |
+| pyproject.toml + mypy | `mypy .` |
 
 **如果质量检查失败**：
 
@@ -186,6 +223,13 @@ git diff --cached --stat
 git add -A
 ```
 
+> **注意**：`git add -A` 会暂存所有改动（包括新文件、修改和删除）。
+> 如果需要更精确控制，可以：
+>
+> - 只添加已跟踪文件的修改：`git add -u`
+> - 交互式选择：`git add -p`
+> - 添加特定文件：`git add <file1> <file2>`
+
 ### 5.2 创建 commit
 
 ```bash
@@ -214,11 +258,21 @@ git push -u origin $(git branch --show-current)
 
 ### 6.3 创建 PR
 
+**如果指定了 `--draft` 参数**：
+
 ```bash
 gh pr create \
   --title "<PR title>" \
   --body "<PR body>" \
-  [--draft]  # 如果指定了 --draft 参数
+  --draft
+```
+
+**否则创建正式 PR**：
+
+```bash
+gh pr create \
+  --title "<PR title>" \
+  --body "<PR body>"
 ```
 
 ---
