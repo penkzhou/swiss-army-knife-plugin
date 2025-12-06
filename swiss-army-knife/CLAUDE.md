@@ -105,6 +105,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
              │       ├─ 6 个 review agents (并行)
              │       └─ review-fixer agent (最多 3 次循环)
              └─ Phase 5: summary-reporter agent + bugfix-knowledge
+```
 
 ### 组件结构
 
