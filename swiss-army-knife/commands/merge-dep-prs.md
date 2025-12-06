@@ -1,6 +1,6 @@
 ---
 description: 合并依赖更新 PR（Renovate + Dependabot），减少 CI 成本
-argument-hint: "[--bot=all|renovate|dependabot] [--dry-run] [--frontend-only] [--backend-only]"
+argument-hint: "[--bot=all|renovate|dependabot] [--dry-run] [--frontend-only] [--backend-only] [--log] [--verbose]"
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
 ---
 
@@ -20,6 +20,15 @@ allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
 | `--dry-run` | `false` | 只分析不执行 |
 | `--frontend-only` | `false` | 仅处理前端依赖 |
 | `--backend-only` | `false` | 仅处理后端依赖 |
+| `--log` | `false` | 启用过程日志（INFO 级别） |
+| `--verbose` | `false` | 启用详细日志（DEBUG 级别，隐含 --log） |
+
+### 日志参数说明
+
+- `--log`：记录关键步骤、依赖变更、Git 操作
+- `--verbose`：额外记录详细的 PR 解析信息和命令输出
+- 日志文件位置：`.claude/logs/swiss-army-knife/merge-dep-prs/`
+- 生成两种格式：`.jsonl`（程序查询）和 `.log`（人类阅读）
 
 **示例**：
 - `/merge-dep-prs` - 合并所有依赖更新 PR

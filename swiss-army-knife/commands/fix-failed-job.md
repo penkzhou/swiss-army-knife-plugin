@@ -1,7 +1,7 @@
 ---
 description: 修复失败的 GitHub Action job（7 阶段流程，Phase 0-6）
-argument-hint: "<JOB_URL> [--dry-run] [--auto-commit] [--retry-job] [--phase=0,1,2,3,4,5,6|all]"
-allowed-tools: Read, Task, AskUserQuestion
+argument-hint: "<JOB_URL> [--dry-run] [--auto-commit] [--retry-job] [--phase=0,1,2,3,4,5,6|all] [--log] [--verbose]"
+allowed-tools: Read, Task, AskUserQuestion, Bash
 ---
 
 # Fix Failed Job Workflow v2.0
@@ -23,6 +23,15 @@ allowed-tools: Read, Task, AskUserQuestion
 | `--auto-commit` | 否 | `false` | 修复后自动创建 git commit |
 | `--retry-job` | 否 | `false` | 修复后触发 job 重新运行 |
 | `--phase=X,Y` | 否 | `all` | 指定执行阶段 |
+| `--log` | 否 | `false` | 启用过程日志（INFO 级别） |
+| `--verbose` | 否 | `false` | 启用详细日志（DEBUG 级别，隐含 --log） |
+
+### 日志参数说明
+
+- `--log`：记录 Phase/Agent 事件、置信度决策、用户交互
+- `--verbose`：额外记录完整的 agent 输入输出（文件可能较大）
+- 日志文件位置：`.claude/logs/swiss-army-knife/ci-job/`
+- 生成两种格式：`.jsonl`（程序查询）和 `.log`（人类阅读）
 
 ### URL 格式验证
 
@@ -52,9 +61,22 @@ https://github.com/{owner}/{repo}/actions/runs/{run_id}/jobs/{job_id}
 >     "auto_commit": {--auto-commit 解析结果},
 >     "retry_job": {--retry-job 解析结果},
 >     "phase": "{--phase 解析结果或 'all'}"
+>   },
+>   "logging": {
+>     "enabled": {--log 或 --verbose 解析结果，true/false},
+>     "level": "{--verbose 时为 'debug'，--log 时为 'info'}",
+>     "session_id": "{生成 8 位随机字符串，如 'a1b2c3d4'}"
 >   }
 > }
 > ```
+
+### 生成 session_id
+
+使用以下方法生成 8 位随机 ID：
+
+```bash
+cat /dev/urandom | LC_ALL=C tr -dc 'a-z0-9' | head -c 8
+```
 
 ---
 

@@ -3,6 +3,7 @@ name: pr-review-comment-fetcher
 description: Fetches review and issue comments from GitHub PR using gh CLI.
 model: sonnet
 tools: Bash
+skills: workflow-logging
 ---
 
 # PR Review Comment Fetcher Agent
@@ -274,3 +275,18 @@ def is_ci_report(body):
 - 时间戳保持 ISO 8601 格式
 - ID 添加前缀以区分评论类型
 - 不在此阶段进行评论过滤（已解决/CI 报告/空内容过滤由下一个 agent 处理）
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 获取 Review Comments | `fetch_review_comments` | 获取 Review Comments |
+| 2. 获取 Issue Comments | `fetch_issue_comments` | 获取 Issue Comments |
+| 3. 合并评论 | `merge_comments` | 合并评论 |
+| 4. 生成摘要 | `generate_summary` | 生成摘要 |

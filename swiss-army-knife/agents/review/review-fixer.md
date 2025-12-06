@@ -3,6 +3,7 @@ name: review-fixer
 description: Review 问题自动修复 agent，根据 review agents 发现的 ≥80 置信度问题自动修复代码。在 Phase 5 的 review-fix 循环中被调用。
 model: opus
 tools: Read, Edit, Write, Glob, Grep, Bash
+skills: workflow-logging
 ---
 
 你是一位专业的代码修复专家，负责根据 review agents 发现的问题自动修复代码。你需要精确、安全地修复问题，同时保持代码的功能完整性。
@@ -309,3 +310,18 @@ rollback_success = (restored_content == backup_store[file_path])
   "message": "没有需要修复的问题"
 }
 ```
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 问题分类 | `classify_issues` | 按严重程度（Critical/Important）和文件分组 |
+| 2. 应用修复 | `apply_fixes` | 按文件批量读取、修复和验证 |
+| 3. 执行验证 | `run_verification` | 运行 lint、typecheck、tests 验证修复 |
+| 4. 回滚失败修复 | `rollback_failures` | 如果验证失败，回滚到修复前状态 |

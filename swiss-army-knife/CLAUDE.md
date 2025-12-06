@@ -269,6 +269,125 @@ allowed-tools: Read, Write, Task   # 显式工具权限（逗号分隔）
 - **[Sub-agents 最佳实践](https://code.claude.com/docs/en/sub-agents)**：设计和协调子 agent 的指南，包含 Task 工具使用模式
 - **[Hooks 开发指南](https://code.claude.com/docs/en/hooks)**：事件驱动自动化和工作流触发器的实现指南
 
+## 过程日志
+
+所有工作流支持过程日志，用于追踪执行状态和 debug 问题。
+
+### 开启日志
+
+在任何命令中添加 `--log` 或 `--verbose` 参数：
+
+| 参数 | 级别 | 记录内容 |
+|------|------|----------|
+| `--log` | INFO | Phase/Agent 事件、置信度决策、用户交互 |
+| `--verbose` | DEBUG | 额外包含完整的 agent 输入输出（文件较大） |
+
+**示例**：
+
+```bash
+# 开启 INFO 日志
+/swiss-army-knife:fix-frontend --log
+
+# 开启 DEBUG 日志
+/swiss-army-knife:fix-backend --verbose
+
+# PR Review 工作流
+/swiss-army-knife:fix-pr-review 123 --log
+```
+
+### 日志文件位置
+
+日志保存在项目根目录下，按工作流类型分目录：
+
+```text
+.claude/logs/swiss-army-knife/
+├── bugfix/           # fix-frontend, fix-backend, fix-e2e
+├── pr-review/        # fix-pr-review
+├── ci-job/           # fix-failed-job
+└── execute-plan/     # execute-plan
+```
+
+**文件命名**：`{日期}_{时间}_{标识符}_{会话ID}.{格式}`
+
+- 示例：`2024-12-06_143052_frontend_a1b2c3d4.jsonl`
+- 每次执行生成 `.jsonl`（程序查询）和 `.log`（人类阅读）两个文件
+
+### 查看日志
+
+**文本格式**（实时跟踪）：
+
+```bash
+# 跟踪最新日志
+tail -f .claude/logs/swiss-army-knife/bugfix/*.log
+
+# 查看错误
+grep "ERROR" .claude/logs/swiss-army-knife/bugfix/*.log
+
+# 查看决策点
+grep "DECN" .claude/logs/swiss-army-knife/bugfix/*.log
+```
+
+**JSONL 格式**（结构化查询）：
+
+```bash
+# 查看会话摘要
+jq 'select(.type == "SESSION_START" or .type == "SESSION_END")' xxx.jsonl
+
+# 查看所有错误
+jq 'select(.level == "E")' xxx.jsonl
+
+# 查看 Phase 耗时
+jq 'select(.type == "PHASE_END") | {phase, duration_ms, status}' xxx.jsonl
+
+# 查看置信度决策
+jq 'select(.type == "CONFIDENCE_DECISION")' xxx.jsonl
+```
+
+### Debug 工作流
+
+#### 关键事件
+
+| 事件 | 含义 |
+|------|------|
+| `SESSION_START` | 工作流开始，记录命令参数和环境 |
+| `PHASE_START/END` | 每个阶段的开始和结束 |
+| `CONFIDENCE_DECISION` | 置信度决策（auto_continue/ask_user/stop） |
+| `USER_INTERACTION` | 用户交互（问题和回答） |
+| `ERROR` | 错误和失败 |
+| `SESSION_END` | 工作流结束，记录总耗时和摘要 |
+
+#### 常见问题排查
+
+| 问题 | 排查方法 |
+|------|----------|
+| 工作流未执行 | 检查 `SESSION_START` 是否存在 |
+| Phase 失败 | 搜索 `PHASE_END` + `status: "failed"` |
+| 置信度过低停止 | 搜索 `CONFIDENCE_DECISION`，查看 `confidence_score` |
+| Review 循环异常 | 搜索 `REVIEW_FIX_ITERATION`，查看迭代次数 |
+
+#### 常见错误码
+
+| 错误码 | 含义 | 解决方法 |
+|--------|------|----------|
+| `CONFIDENCE_TOO_LOW` | 置信度低于阈值 | 提供更多上下文或手动处理 |
+| `GIT_UNAVAILABLE` | Git 不可用 | 确保在 Git 仓库中运行 |
+| `CONFIG_INVALID` | 配置无效 | 检查 `.claude/swiss-army-knife.yaml` |
+| `AGENT_TIMEOUT` | Agent 执行超时 | 检查网络或简化任务 |
+
+### 自定义日志配置
+
+在项目的 `.claude/swiss-army-knife.yaml` 中覆盖默认配置：
+
+```yaml
+logging:
+  enabled: true      # 默认开启日志
+  level: "debug"     # 默认使用 DEBUG 级别
+  output_dir: ".logs/swiss-army-knife"  # 自定义输出目录
+  retention_days: 7  # 保留 7 天
+```
+
+详细的日志格式规范参见 `skills/workflow-logging/SKILL.md`。
+
 ## 领域知识
 
 ### 错误分类（按频率）

@@ -2,8 +2,8 @@
 name: execute-plan-summary-reporter
 description: Use this agent to generate execution report after plan completion. Summarizes task results, code changes, review findings, and provides knowledge extraction suggestions.
 model: sonnet
-tools: Read, Write
-skills: execute-plan
+tools: Read, Write, Bash
+skills: execute-plan, workflow-logging
 ---
 
 # Plan Summary Reporter Agent
@@ -359,3 +359,19 @@ if new_features:
 - 失败和跳过的任务要明确说明原因
 - 知识沉淀建议应具体可操作
 - 后续步骤应按优先级排序
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 汇总执行结果 | `summarize_execution` | 汇总执行结果 |
+| 2. 汇总 Review 结果 | `summarize_review` | 汇总 Review 结果 |
+| 3. 生成报告文档 | `generate_report` | 生成报告文档 |
+| 4. 生成知识沉淀建议 | `generate_knowledge` | 生成知识沉淀建议 |
+| 5. 生成后续步骤 | `generate_next_steps` | 生成后续步骤 |

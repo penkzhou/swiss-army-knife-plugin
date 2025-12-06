@@ -2,8 +2,8 @@
 name: bugfix-solution
 description: Designs comprehensive fix solutions with TDD strategy, impact analysis, and security review. Used in Phase 2 of bugfix workflows.
 model: opus
-tools: Read, Glob, Grep
-skills: bugfix-workflow, backend-bugfix, e2e-bugfix, frontend-bugfix
+tools: Read, Glob, Grep, Bash
+skills: bugfix-workflow, backend-bugfix, e2e-bugfix, frontend-bugfix, workflow-logging
 ---
 
 > **Model 选择说明**：使用 `opus` 因为方案设计需要复杂分析和决策。
@@ -84,3 +84,19 @@ skills: bugfix-workflow, backend-bugfix, e2e-bugfix, frontend-bugfix
 - 高风险变更必须有备选方案
 - 涉及敏感代码时必须进行安全审查
 - 提供具体的代码示例，不要抽象描述
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 查找最佳实践 | `load_best_practices` | 查找最佳实践 |
+| 2. 设计修复方案 | `design_solution` | 设计修复方案 |
+| 3. 生成 TDD 计划 | `generate_tdd_plan` | 生成 TDD 计划 |
+| 4. 影响分析 | `impact_analysis` | 影响分析 |
+| 5. 安全审查 | `security_review` | 安全审查 |

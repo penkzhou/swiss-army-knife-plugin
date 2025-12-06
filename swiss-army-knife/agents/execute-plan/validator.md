@@ -2,8 +2,8 @@
 name: execute-plan-validator
 description: Use this agent to validate plan executability. Analyzes task dependencies, detects cyclic dependencies, and generates topologically sorted execution order with confidence scoring.
 model: opus
-tools: Read, Glob, Grep
-skills: execute-plan
+tools: Read, Glob, Grep, Bash
+skills: execute-plan, workflow-logging
 ---
 
 # Plan Validator Agent
@@ -301,3 +301,21 @@ overall_confidence = weighted_confidence / total_weight
 - 循环依赖必须报告，不能忽略
 - 批次划分应尽量并行化以提高效率
 - 置信度计算应考虑任务复杂度权重
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 验证每个任务 | `validate_tasks` | 验证任务 |
+| 2. 检测隐式依赖 | `detect_implicit_deps` | 检测隐式依赖 |
+| 3. 循环依赖检测 | `detect_cycles` | 循环依赖检测 |
+| 4. 拓扑排序 | `topological_sort` | 拓扑排序 |
+| 5. 生成批次 | `generate_batches` | 生成批次 |
+| 6. 计算整体置信度 | `calculate_confidence` | 计算整体置信度 |
+| 7. 生成建议 | `generate_recommendation` | 生成建议 |

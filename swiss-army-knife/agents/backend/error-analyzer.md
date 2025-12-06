@@ -2,8 +2,8 @@
 name: backend-error-analyzer
 description: Analyzes backend test failures (Python/pytest, Node.js/Jest). Parses, classifies, and matches historical fixes.
 model: inherit
-tools: Read, Glob, Grep
-skills: bugfix-workflow, backend-bugfix
+tools: Read, Glob, Grep, Bash
+skills: bugfix-workflow, backend-bugfix, workflow-logging
 ---
 
 # Backend Error Analyzer Agent
@@ -141,3 +141,18 @@ E       asyncio.exceptions.TimeoutError
 - 对于重复错误（同一根因），合并报告
 - 历史匹配只返回相似度 >= 50 的结果
 - 始终提供下一步行动建议
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 解析错误信息 | `error_parsing` | 解析错误信息 |
+| 2. 分类错误 | `error_classification` | 分类错误 |
+| 3. 匹配历史案例 | `history_matching` | 匹配历史案例 |
+| 4. 匹配诊断文档 | `doc_matching` | 匹配诊断文档 |

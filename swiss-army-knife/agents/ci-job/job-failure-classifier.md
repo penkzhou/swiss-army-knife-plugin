@@ -2,8 +2,8 @@
 name: ci-job-failure-classifier
 description: Classifies CI failures. Identifies type, stack, and auto-fix possibility.
 model: inherit
-tools: Read, Glob, Grep
-skills: ci-job-analysis
+tools: Read, Glob, Grep, Bash
+skills: ci-job-analysis, workflow-logging
 ---
 
 # CI Job Failure Classifier Agent
@@ -351,3 +351,19 @@ def generate_recommendation(classifications):
 - 考虑项目特定的错误格式
 - 保守评估置信度，宁低勿高
 - 不可修复类型直接标记，不浪费后续处理资源
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 失败类型分类 | `classify-type` | 失败类型分类 |
+| 2. 技术栈识别 | `identify-stack` | 技术栈识别 |
+| 3. 置信度评估 | `evaluate-confidence` | 置信度评估 |
+| 4. 修复可行性分析 | `analyze-fixability` | 修复可行性分析 |
+| 5. 生成建议 | `generate-recommendation` | 生成建议 |

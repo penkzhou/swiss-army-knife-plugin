@@ -3,7 +3,7 @@ name: pr-review-response-generator
 description: Generates GitHub reply content from fix results with appropriate tone.
 model: sonnet
 tools: Read
-skills: pr-review-analysis, elements-of-style
+skills: pr-review-analysis, elements-of-style, workflow-logging
 ---
 
 # PR Review Response Generator Agent
@@ -279,3 +279,20 @@ def format_test_results(fix_details):
 - 使用相对路径链接 bugfix 文档
 - @ 提及只包含直接相关的 reviewer
 - 保持回复简洁，避免冗长解释
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 接收输入 | `receive_input` | 接收输入 |
+| 2. 匹配回复类型 | `match_reply_type` | 匹配回复类型 |
+| 3. 渲染模板 | `render_template` | 渲染模板 |
+| 4. 生成澄清问题 | `generate_questions` | 生成澄清问题 |
+| 5. 添加 @ 提及 | `add_mentions` | 添加 @ 提及 |
+| 6. 格式化测试结果 | `format_tests` | 格式化测试结果 |

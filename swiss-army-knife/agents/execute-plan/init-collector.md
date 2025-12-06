@@ -3,7 +3,7 @@ name: execute-plan-init-collector
 description: Use this agent to initialize execute-plan workflow. Parses plan files (Markdown/YAML), loads config, and collects project context including Git status and tech stack detection.
 model: sonnet
 tools: Read, Glob, Grep, Bash
-skills: execute-plan
+skills: execute-plan, workflow-logging
 ---
 
 # Plan Init Collector Agent
@@ -317,3 +317,18 @@ git log -1 --format="%h"
 - Git 信息不可用时不要失败，添加警告继续
 - 任务 ID 必须唯一且有序
 - 复杂度推断基于文件数和依赖数
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 加载配置 | `load_config` | 加载配置 |
+| 2. 解析计划文件 | `parse_plan` | 解析计划文件 |
+| 3. 收集项目信息 | `collect_project_info` | 收集项目信息 |
+| 4. 验证输出 | `validate_output` | 验证输出 |

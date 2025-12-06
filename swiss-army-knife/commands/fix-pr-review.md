@@ -1,7 +1,7 @@
 ---
 description: 处理 PR 中的 Code Review 评论（8 阶段流程，Phase 0-7）
-argument-hint: "<PR_NUMBER> [--dry-run] [--priority=P0,P1,P2] [--auto-reply]"
-allowed-tools: Read, Task, AskUserQuestion
+argument-hint: "<PR_NUMBER> [--dry-run] [--priority=P0,P1,P2] [--auto-reply] [--log] [--verbose]"
+allowed-tools: Read, Task, AskUserQuestion, Bash
 ---
 
 # Fix PR Review Workflow v2.0
@@ -22,6 +22,15 @@ allowed-tools: Read, Task, AskUserQuestion
 | `--dry-run` | 否 | `false` | 只分析不执行修复和回复 |
 | `--priority=X,Y` | 否 | `P0,P1` | 指定处理的优先级 |
 | `--auto-reply` | 否 | `true` | 自动回复 reviewer |
+| `--log` | 否 | `false` | 启用过程日志（INFO 级别） |
+| `--verbose` | 否 | `false` | 启用详细日志（DEBUG 级别，隐含 --log） |
+
+### 日志参数说明
+
+- `--log`：记录 Phase/Agent 事件、置信度决策、用户交互
+- `--verbose`：额外记录完整的 agent 输入输出（文件可能较大）
+- 日志文件位置：`.claude/logs/swiss-army-knife/pr-review/`
+- 生成两种格式：`.jsonl`（程序查询）和 `.log`（人类阅读）
 
 ### 参数验证
 
@@ -46,9 +55,22 @@ allowed-tools: Read, Task, AskUserQuestion
 >     "dry_run": {--dry-run 解析结果},
 >     "priority": {--priority 解析结果或 ["P0", "P1"]},
 >     "auto_reply": {--auto-reply 解析结果或 true}
+>   },
+>   "logging": {
+>     "enabled": {--log 或 --verbose 解析结果，true/false},
+>     "level": "{--verbose 时为 'debug'，--log 时为 'info'}",
+>     "session_id": "{生成 8 位随机字符串，如 'a1b2c3d4'}"
 >   }
 > }
 > ```
+
+### 生成 session_id
+
+使用以下方法生成 8 位随机 ID：
+
+```bash
+cat /dev/urandom | LC_ALL=C tr -dc 'a-z0-9' | head -c 8
+```
 
 ---
 

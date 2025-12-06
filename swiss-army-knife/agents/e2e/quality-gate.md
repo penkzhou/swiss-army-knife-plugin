@@ -3,7 +3,7 @@ name: e2e-quality-gate
 description: Verifies quality gates after fix implementation. Checks test pass rate, lint, regressions.
 model: inherit
 tools: Bash, Read, Grep
-skills: bugfix-workflow
+skills: bugfix-workflow, workflow-logging
 ---
 
 # E2E Quality Gate Agent
@@ -210,3 +210,18 @@ npx playwright test --reporter=json
 - Flaky test 是严重警告，需要尽快修复
 - 如有跳过的测试，需要说明原因
 - 视觉回归变化需要人工确认
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 测试检查 | `test_check` | 测试检查 |
+| 2. Flaky 检测 | `flaky_detection` | Flaky 检测 |
+| 3. 回归测试 | `regression_test` | 回归测试 |
+| 4. 视觉回归检查 | `visual_regression` | 视觉回归检查 |

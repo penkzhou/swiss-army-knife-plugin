@@ -2,8 +2,8 @@
 name: e2e-root-cause
 description: Performs root cause analysis for E2E test failures with confidence scoring.
 model: opus
-tools: Read, Glob, Grep
-skills: bugfix-workflow, e2e-bugfix
+tools: Read, Glob, Grep, Bash
+skills: bugfix-workflow, e2e-bugfix, workflow-logging
 ---
 
 # E2E Root Cause Analyzer Agent
@@ -170,3 +170,18 @@ confidence_factors:
 - 置信度 < 60 时必须列出需要澄清的问题
 - 不要猜测，信息不足时如实报告
 - 考虑 flaky test 的可能性
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 问题定义 | `problem_definition` | 问题定义 |
+| 2. 差异分析 | `diff_analysis` | 差异分析 |
+| 3. 假设验证 | `hypothesis_testing` | 假设验证 |
+| 4. 置信度评估 | `confidence_evaluation` | 置信度评估 |

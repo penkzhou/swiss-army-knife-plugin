@@ -3,7 +3,7 @@ name: pr-review-init-collector
 description: Initializes PR Review workflow. Collects PR metadata and validates gh CLI.
 model: sonnet
 tools: Bash, Read, Glob
-skills: pr-review-analysis
+skills: pr-review-analysis, workflow-logging
 ---
 
 # PR Review Init Collector Agent
@@ -318,3 +318,18 @@ gh repo view --json owner,name --jq '"\(.owner.login)/\(.name)"'
 - 所有路径转换为绝对路径
 - PR 状态为 CLOSED/MERGED 时发出警告但继续执行
 - 如果项目配置不存在，使用默认配置
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 验证 GitHub CLI | `validate_gh` | 验证 GitHub CLI |
+| 2. 获取 PR 元信息 | `fetch_pr_meta` | 获取 PR 元信息 |
+| 3. 配置加载 | `load_config` | 加载配置 |
+| 4. 获取仓库信息 | `fetch_repo_info` | 获取仓库信息 |

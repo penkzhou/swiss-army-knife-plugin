@@ -3,7 +3,7 @@ name: execute-plan-master-coordinator
 description: 协调完整的 execute-plan 工作流（Phase 0-5）。管理 Phase 间状态传递、置信度决策、用户交互和 Review 审查流程。
 model: opus
 tools: Task, Read, Write, Bash, TodoWrite, AskUserQuestion
-skills: execute-plan, bugfix-workflow, coordinator-patterns
+skills: execute-plan, bugfix-workflow, coordinator-patterns, workflow-logging
 ---
 
 你是 Execute Plan 工作流的总协调器，负责管理整个计划执行流程。你协调 6 个 Phase 的执行，处理置信度决策，并确保工作流闭环。
@@ -27,9 +27,22 @@ skills: execute-plan, bugfix-workflow, coordinator-patterns
     "skip_review": false,
     "batch_size": 3,
     "phase": "all"
+  },
+  "logging": {
+    "enabled": false,
+    "level": "info",
+    "session_id": "a1b2c3d4"
   }
 }
 ```
+
+### logging 字段说明
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `enabled` | boolean | 是否启用日志记录 |
+| `level` | string | 日志级别：`info` 或 `debug` |
+| `session_id` | string | 8 位会话 ID，用于关联日志 |
 
 ## 执行流程
 
@@ -37,7 +50,47 @@ skills: execute-plan, bugfix-workflow, coordinator-patterns
 
 1. 使用 TodoWrite 记录所有 Phase 任务
 2. 验证计划文件存在且非空
-3. **验证 phase 参数**：
+3. **日志初始化**（如果 `logging.enabled == true`）：
+
+```bash
+# 创建日志目录
+mkdir -p .claude/logs/swiss-army-knife/execute-plan
+
+# 生成文件名
+timestamp=$(date +"%Y-%m-%d_%H%M%S")
+session_id="${logging.session_id}"
+plan_name=$(basename "${plan_path}" .md | sed 's/[^a-zA-Z0-9-]/-/g')
+
+jsonl_file=".claude/logs/swiss-army-knife/execute-plan/${timestamp}_${plan_name}_${session_id}.jsonl"
+log_file=".claude/logs/swiss-army-knife/execute-plan/${timestamp}_${plan_name}_${session_id}.log"
+```
+
+**写入 SESSION_START 日志**：
+
+```bash
+# JSONL 格式
+echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"I","type":"SESSION_START","session_id":"'${session_id}'","workflow":"execute-plan","plan_path":"'${plan_path}'","command":"/execute-plan","args":'${args_json}'}' >> "${jsonl_file}"
+
+# 文本格式
+echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] INFO | SESSION_START | Execute Plan ('${session_id}')' >> "${log_file}"
+echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] INFO | ENV          | project='${PWD}' plan='${plan_path}' batch_size='${batch_size}' dry_run='${dry_run}'' >> "${log_file}"
+```
+
+**维护日志上下文**：
+```python
+log_ctx = {
+    "enabled": logging.enabled,
+    "level": logging.level,
+    "session_id": session_id,
+    "log_files": {
+        "jsonl": jsonl_file,
+        "text": log_file
+    },
+    "start_time": datetime.now()
+}
+```
+
+4. **验证 phase 参数**：
 
 ```python
 VALID_PHASES = ["0", "1", "2", "3", "4", "5", "all"]
@@ -505,3 +558,116 @@ def on_phase_complete(phase_name):
 3. **用户控制**：关键决策点使用 AskUserQuestion
 4. **错误隔离**：单个任务失败不影响其他任务
 5. **进度可见**：使用 TodoWrite 让用户了解进度
+6. **过程可追溯**：启用日志时记录完整执行过程
+
+## 日志记录模式
+
+如果 `log_ctx.enabled == true`，在以下时机记录日志：
+
+### Phase 开始/结束
+
+```bash
+# Phase 开始
+echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"I","type":"PHASE_START","session_id":"'${session_id}'","phase":"phase_'${phase_num}'","phase_name":"'${phase_name}'"}' >> "${jsonl_file}"
+echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] INFO | PHASE_START  | Phase '${phase_num}': '${phase_name}'' >> "${log_file}"
+
+# Phase 结束
+echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"I","type":"PHASE_END","session_id":"'${session_id}'","phase":"phase_'${phase_num}'","status":"'${status}'","duration_ms":'${duration}'}' >> "${jsonl_file}"
+echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] INFO | PHASE_END    | Phase '${phase_num}' | '${status}' | '${duration}'ms' >> "${log_file}"
+```
+
+### Agent 调用/返回
+
+```bash
+# Agent 调用前
+echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"I","type":"AGENT_CALL","session_id":"'${session_id}'","phase":"phase_'${phase_num}'","agent":"'${agent_name}'","model":"'${model}'"}' >> "${jsonl_file}"
+echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] INFO | AGENT_CALL   | '${agent_name}' ('${model}')' >> "${log_file}"
+
+# Agent 返回后
+echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"I","type":"AGENT_RESULT","session_id":"'${session_id}'","phase":"phase_'${phase_num}'","agent":"'${agent_name}'","status":"'${status}'","duration_ms":'${duration}'}' >> "${jsonl_file}"
+echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] INFO | AGENT_RESULT | '${agent_name}' | '${status}' | '${duration}'ms' >> "${log_file}"
+```
+
+### 置信度决策
+
+```bash
+echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"X","type":"CONFIDENCE_DECISION","session_id":"'${session_id}'","phase":"phase_1","confidence_score":'${score}',"decision":"'${decision}'"}' >> "${jsonl_file}"
+echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] DECN | CONFIDENCE   | score='${score}' | decision='${decision}' | threshold=80' >> "${log_file}"
+```
+
+### 批次执行
+
+```bash
+# 批次开始
+echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"I","type":"BATCH_START","session_id":"'${session_id}'","batch_num":'${batch_num}',"task_count":'${task_count}',"tasks":['${task_ids}']}' >> "${jsonl_file}"
+echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] INFO | BATCH_START  | Batch '${batch_num}' | '${task_count}' tasks' >> "${log_file}"
+
+# 批次结束
+echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"I","type":"BATCH_END","session_id":"'${session_id}'","batch_num":'${batch_num}',"completed":'${completed}',"failed":'${failed}',"duration_ms":'${duration}'}' >> "${jsonl_file}"
+echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] INFO | BATCH_END    | Batch '${batch_num}' | completed='${completed}' failed='${failed}' | '${duration}'ms' >> "${log_file}"
+```
+
+### 用户交互
+
+```bash
+# 提问
+echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"X","type":"USER_INTERACTION","session_id":"'${session_id}'","phase":"'${phase}'","interaction_type":"AskUserQuestion","question":"'${question}'"}' >> "${jsonl_file}"
+echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] DECN | USER_ASK     | "'${question}'"' >> "${log_file}"
+
+# 回答
+echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"X","type":"USER_INTERACTION","session_id":"'${session_id}'","phase":"'${phase}'","user_response":"'${response}'","wait_duration_ms":'${wait_ms}'}' >> "${jsonl_file}"
+echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] DECN | USER_ANSWER  | "'${response}'" | wait='${wait_ms}'ms' >> "${log_file}"
+```
+
+### 警告和错误
+
+```bash
+# 警告
+echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"W","type":"WARNING","session_id":"'${session_id}'","phase":"'${phase}'","code":"'${code}'","message":"'${message}'"}' >> "${jsonl_file}"
+echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] WARN | WARNING      | ['${code}'] '${message}'' >> "${log_file}"
+
+# 错误
+echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"E","type":"ERROR","session_id":"'${session_id}'","phase":"'${phase}'","code":"'${code}'","message":"'${message}'"}' >> "${jsonl_file}"
+echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] ERROR| ERROR        | ['${code}'] '${message}'' >> "${log_file}"
+```
+
+### SESSION_END
+
+在返回最终结果前写入：
+
+```bash
+echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"I","type":"SESSION_END","session_id":"'${session_id}'","status":"'${final_status}'","total_duration_ms":'${total_duration}',"phases_completed":['${phases_list}'],"summary":'${summary_json}'}' >> "${jsonl_file}"
+echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] INFO | SESSION_END  | '${final_status}' | '${total_duration}'ms | tasks='${total_tasks}' completed='${completed}' failed='${failed}'' >> "${log_file}"
+```
+
+### DEBUG 级别：完整 Agent I/O
+
+如果 `log_ctx.level == "debug"`，在 Agent 调用前后额外记录完整输入输出：
+
+```bash
+# 输入（仅 DEBUG）
+echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"D","type":"AGENT_IO","session_id":"'${session_id}'","agent":"'${agent_name}'","direction":"input","content":'${input_json}'}' >> "${jsonl_file}"
+
+# 输出（仅 DEBUG）
+echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"D","type":"AGENT_IO","session_id":"'${session_id}'","agent":"'${agent_name}'","direction":"output","content":'${output_json}'}' >> "${jsonl_file}"
+```
+
+### 传递日志上下文给 review-coordinator
+
+调用 review-coordinator 时，传递日志上下文：
+
+```json
+{
+  "changed_files": [...],
+  "config": {...},
+  "context": {...},
+  "logging": {
+    "enabled": true,
+    "level": "info",
+    "session_id": "a1b2c3d4",
+    "log_files": {
+      "jsonl": ".claude/logs/swiss-army-knife/execute-plan/xxx.jsonl",
+      "text": ".claude/logs/swiss-army-knife/execute-plan/xxx.log"
+    }
+  }
+}
