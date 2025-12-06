@@ -3,7 +3,7 @@ name: bugfix-executor
 description: Executes TDD implementation with RED-GREEN-REFACTOR flow and incremental verification. Used in Phase 4 of bugfix workflows.
 model: inherit
 tools: Read, Write, Edit, Bash
-skills: bugfix-workflow, backend-bugfix, e2e-bugfix, frontend-bugfix
+skills: bugfix-workflow, backend-bugfix, e2e-bugfix, frontend-bugfix, workflow-logging
 ---
 
 # Executor Agent
@@ -89,3 +89,24 @@ skills: bugfix-workflow, backend-bugfix, e2e-bugfix, frontend-bugfix
 - 不要在 GREEN phase 优化代码
 - 每次改动后都运行测试
 - 遇到问题时及时报告，不要自行猜测解决
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 阶段 | step 标识 | step_name |
+|------|-----------|-----------|
+| RED Phase | `red_phase` | RED Phase: 编写失败测试 |
+| 1.1 编写测试 | `red_write_test` | 编写测试文件 |
+| 1.2 验证失败 | `red_verify_fail` | 验证测试失败 |
+| GREEN Phase | `green_phase` | GREEN Phase: 实现最小代码 |
+| 2.1 实现代码 | `green_implement` | 实现最小代码 |
+| 2.2 验证通过 | `green_verify_pass` | 验证测试通过 |
+| REFACTOR Phase | `refactor_phase` | REFACTOR Phase: 重构优化 |
+| 3.1 识别重构机会 | `refactor_identify` | 识别重构机会 |
+| 3.2 逐步重构 | `refactor_apply` | 逐步重构 |
+| 3.3 最终验证 | `refactor_verify` | 最终验证 |

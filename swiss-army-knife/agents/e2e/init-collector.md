@@ -3,7 +3,7 @@ name: e2e-init-collector
 description: Initializes E2E bugfix workflow. Loads config, captures test output, collects project context.
 model: sonnet
 tools: Read, Glob, Grep, Bash
-skills: bugfix-workflow, e2e-bugfix
+skills: bugfix-workflow, e2e-bugfix, workflow-logging
 ---
 
 # E2E Init Collector Agent
@@ -369,3 +369,17 @@ grep -E "use:|baseURL|headless|browserName" playwright.config.ts 2>/dev/null
 - 项目信息收集失败时优雅降级，不阻塞主流程
 - 如果用户已提供测试输出，标记 `source: "user_provided"`
 - E2E 测试输出可能很长，注意截取时保留关键错误信息
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 配置加载 | `config_loading` | 加载配置 |
+| 2. 测试输出收集 | `test_collection` | 收集测试输出 |
+| 3. 项目信息收集 | `project_info` | 收集项目信息 |

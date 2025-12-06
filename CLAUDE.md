@@ -64,7 +64,7 @@ swiss-army-knife-plugin/
     │   ├── fix-pr-review.md       # PR Review 工作流
     │   ├── merge-dep-prs.md       # 合并依赖更新 PR（Renovate/Dependabot）
     │   └── release.md             # 版本发布自动化
-    ├── skills/                    # 10 个知识库
+    ├── skills/                    # 11 个知识库
     │   ├── backend-bugfix/        # Python/FastAPI 错误模式
     │   ├── bugfix-workflow/       # 通用 TDD 流程
     │   ├── ci-job-analysis/       # CI 失败分析
@@ -74,7 +74,8 @@ swiss-army-knife-plugin/
     │   ├── execute-plan/          # 计划执行模式
     │   ├── frontend-bugfix/       # React/TypeScript 错误模式
     │   ├── knowledge-patterns/    # PR Review 修复模式库
-    │   └── pr-review-analysis/    # PR Review 分析
+    │   ├── pr-review-analysis/    # PR Review 分析
+    │   └── workflow-logging/      # 工作流过程日志规范
     ├── hooks/                     # 事件钩子
     │   ├── hooks.json             # Hook 配置
     │   └── scripts/               # Hook 脚本
@@ -90,7 +91,7 @@ swiss-army-knife-plugin/
 |------|------|
 | Commands | 8 |
 | Agents | 47 |
-| Skills | 10 |
+| Skills | 11 |
 | Hooks | 2 (PostToolUse, SessionStart) |
 
 ## 主要命令

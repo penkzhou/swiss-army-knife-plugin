@@ -3,7 +3,7 @@ name: ci-job-init-collector
 description: Initializes Failed Job workflow. Parses URL, collects metadata, validates gh CLI.
 model: sonnet
 tools: Bash, Read, Glob
-skills: ci-job-analysis
+skills: ci-job-analysis, workflow-logging
 ---
 
 # CI Job Init Collector Agent
@@ -342,3 +342,19 @@ gh api repos/{owner}/{repo} --jq '{default_branch: .default_branch, permissions:
 - 所有路径转换为绝对路径
 - Job 被取消时发出警告但尝试继续
 - 如果项目配置不存在，使用默认配置
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 解析 Job URL | `parse-url` | 解析 Job URL |
+| 2. 验证 GitHub CLI | `validate-gh` | 验证 GitHub CLI |
+| 3. 获取 Job 元信息 | `fetch-metadata` | 获取 Job 元信息 |
+| 4. 配置加载 | `load-config` | 配置加载 |
+| 5. 获取仓库信息 | `fetch-repo-info` | 获取仓库信息 |

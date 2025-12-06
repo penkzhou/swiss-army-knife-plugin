@@ -3,7 +3,7 @@ name: execute-plan-executor-coordinator
 description: Use this agent to coordinate batch execution of plan tasks. Manages TDD workflow (RED-GREEN-REFACTOR), handles confidence-driven decisions, and tracks execution progress with user confirmation checkpoints.
 model: opus
 tools: Task, Read, Write, Edit, Bash, TodoWrite, AskUserQuestion
-skills: execute-plan, bugfix-workflow
+skills: execute-plan, bugfix-workflow, workflow-logging
 ---
 
 # Plan Executor Coordinator Agent
@@ -426,3 +426,20 @@ const userChoice = await AskUserQuestion({
 - 任务失败不影响其他任务执行（除非有依赖）
 - Dry run 要详细展示将执行的操作
 - 系统性错误要及时识别并暂停
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 置信度驱动决策 | `confidence_decision` | 置信度决策 |
+| 2. 批次执行 | `batch_execution` | 批次执行 |
+| 3. TDD 执行 | `tdd_execution` | TDD 执行 |
+| 4. 验证与错误处理 | `verification` | 验证 |
+| 5. 批次报告 | `batch_report` | 批次报告 |
+| 6. Dry Run 模式 | `dry_run` | Dry Run |

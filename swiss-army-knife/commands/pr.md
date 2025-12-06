@@ -1,7 +1,7 @@
 ---
 description: 自动分析改动、运行质量检查、提交 commit 并创建 PR
-argument-hint: "[--no-qa] [--draft]"
-allowed-tools: ["Read", "Glob", "Grep", "Bash", "AskUserQuestion"]
+argument-hint: "[--no-qa] [--draft] [--log] [--verbose]"
+allowed-tools: Read, Glob, Grep, Bash, AskUserQuestion
 ---
 
 # PR Command
@@ -16,14 +16,106 @@ allowed-tools: ["Read", "Glob", "Grep", "Bash", "AskUserQuestion"]
 
 从用户输入中解析参数：
 
-- `--no-qa`：跳过质量检查（不推荐）
-- `--draft`：创建草稿 PR
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `--no-qa` | `false` | 跳过质量检查（不推荐） |
+| `--draft` | `false` | 创建草稿 PR |
+| `--log` | `false` | 启用过程日志（INFO 级别） |
+| `--verbose` | `false` | 启用详细日志（DEBUG 级别，隐含 --log） |
+
+### 日志参数说明
+
+- `--log`：记录关键步骤、Git 操作、质量检查结果
+- `--verbose`：额外记录详细的 diff 分析和命令输出
+- 日志文件位置：`.claude/logs/swiss-army-knife/pr/`
+- 生成两种格式：`.jsonl`（程序查询）和 `.log`（人类阅读）
 
 **示例**：
 
 - `/pr` - 分析改动并创建 PR
 - `/pr --draft` - 创建草稿 PR
 - `/pr --no-qa` - 跳过质量检查
+- `/pr --log` - 启用过程日志
+
+---
+
+## 步骤 0: 环境准备
+
+### 0.1 验证 gh CLI 认证
+
+**在开始任何工作之前，必须先验证 gh CLI 已认证**：
+
+```bash
+gh auth status
+```
+
+**检查认证结果**：
+
+```bash
+# 捕获认证状态输出，便于诊断失败原因
+AUTH_OUTPUT=$(gh auth status 2>&1)
+AUTH_STATUS=$?
+
+if [ $AUTH_STATUS -ne 0 ]; then
+  echo "ERROR: GitHub CLI 认证检查失败"
+  echo ""
+  echo "认证状态输出："
+  echo "$AUTH_OUTPUT"
+  echo ""
+  echo "请运行 'gh auth login' 进行认证"
+  exit 1
+fi
+```
+
+> **重要**：如果 gh 未认证，必须在流程最开始就停止，避免用户完成所有工作后才发现无法创建 PR。
+
+### 0.2 初始化日志（如果启用 --log 或 --verbose）
+
+**生成 session_id**（与其他命令保持一致）：
+
+```bash
+# 使用 /dev/urandom 生成 8 位随机字符串，确保唯一性
+SESSION_ID=$(cat /dev/urandom | LC_ALL=C tr -dc 'a-z0-9' | head -c 8)
+```
+
+**创建日志目录和文件**：
+
+```bash
+LOG_DIR=".claude/logs/swiss-army-knife/pr"
+LOG_ENABLED=true
+
+# 创建日志目录（带错误检查）
+if ! mkdir -p "$LOG_DIR" 2>/dev/null; then
+  echo "⚠️ 警告：无法创建日志目录 ${LOG_DIR}，日志功能已禁用" >&2
+  LOG_ENABLED=false
+fi
+
+TIMESTAMP=$(date +"%Y-%m-%d_%H%M%S")
+JSONL_FILE="${LOG_DIR}/${TIMESTAMP}_${SESSION_ID}.jsonl"
+LOG_FILE="${LOG_DIR}/${TIMESTAMP}_${SESSION_ID}.log"
+
+# 验证文件可写（仅当目录创建成功时）
+if [ "$LOG_ENABLED" = true ]; then
+  if ! touch "$JSONL_FILE" 2>/dev/null || ! touch "$LOG_FILE" 2>/dev/null; then
+    echo "⚠️ 警告：无法创建日志文件，日志功能已禁用" >&2
+    LOG_ENABLED=false
+  fi
+fi
+```
+
+**记录 SESSION_START**（仅当日志已启用）：
+
+```bash
+if [ "$LOG_ENABLED" = true ]; then
+  # JSONL 格式
+  echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"I","type":"SESSION_START","session_id":"'$SESSION_ID'","command":"/pr","args":{"no_qa":'$NO_QA',"draft":'$DRAFT',"log":true}}' >> "$JSONL_FILE"
+
+  # 文本格式
+  echo "[$(date +"%Y-%m-%d %H:%M:%S")] INFO | SESSION_START | PR Command ($SESSION_ID)" >> "$LOG_FILE"
+fi
+```
+
+> **注意**：后续每个步骤开始和结束时，如果启用了日志，都应追加对应的日志记录。
 
 ---
 
@@ -81,6 +173,23 @@ chore/<short-description>  # 构建/工具变更
    git merge origin/main
    ```
 
+   **检查 merge 结果**：
+
+   ```bash
+   # 检查是否有冲突
+   if [ -n "$(git ls-files -u)" ]; then
+     echo "ERROR: 与 main 分支存在合并冲突"
+     echo "冲突文件："
+     git ls-files -u | awk '{print $4}' | sort -u
+     echo ""
+     echo "请手动解决冲突后再运行此命令"
+     echo "或执行 'git merge --abort' 取消合并"
+     exit 1
+   fi
+   ```
+
+   > **重要**：如果 merge 产生冲突，必须停止流程并列出冲突文件，让用户手动处理。
+
 ---
 
 ## 步骤 2: 分析改动
@@ -92,6 +201,19 @@ git status --porcelain
 git diff --stat
 git diff --cached --stat
 ```
+
+**检查是否有改动**：
+
+```bash
+# 检查是否有任何改动（工作区 + 暂存区）
+if [ -z "$(git status --porcelain)" ]; then
+  echo "ERROR: 没有检测到任何改动，无法创建 PR"
+  echo "请先进行代码修改后再运行此命令"
+  exit 1
+fi
+```
+
+> **重要**：如果没有任何改动（工作区和暂存区都为空），必须停止流程并提示用户。
 
 ### 2.2 分析改动内容
 
@@ -182,6 +304,28 @@ fi
 
 3. 如果选择自动修复，运行对应的 fix 命令（如 `make lint-fix`、`npm run lint -- --fix`）
 
+### 3.3 质量检查跳过审计
+
+**如果用户指定了 `--no-qa` 或选择跳过检查**：
+
+1. 在 PR body 中添加警告标记：
+
+   ```markdown
+   > ⚠️ **注意**：此 PR 跳过了质量检查（lint/test）
+   ```
+
+2. 如果启用了日志，记录跳过事件：
+
+   ```bash
+   # JSONL 格式
+   echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"W","type":"QA_SKIPPED","session_id":"'$SESSION_ID'","reason":"user_requested"}' >> "$JSONL_FILE"
+
+   # 文本格式
+   echo "[$(date +"%Y-%m-%d %H:%M:%S")] WARN | QA_SKIPPED | 质量检查被用户跳过" >> "$LOG_FILE"
+   ```
+
+> **重要**：跳过质量检查应该有明确的审计记录，方便后续追溯问题。
+
 ---
 
 ## 步骤 4: 生成 Commit 信息
@@ -245,6 +389,22 @@ git commit -m "<commit message>"
 ```bash
 git push -u origin $(git branch --show-current)
 ```
+
+**检查 push 结果**：
+
+```bash
+PUSH_RESULT=$?
+if [ $PUSH_RESULT -ne 0 ]; then
+  echo "ERROR: 推送分支失败，退出码: $PUSH_RESULT"
+  echo "可能的原因："
+  echo "  - 没有远程仓库写权限"
+  echo "  - 远程分支有新提交需要先 pull"
+  echo "  - 网络连接问题"
+  exit 1
+fi
+```
+
+> **重要**：如果 push 失败，必须停止流程并向用户报告错误，不能继续创建 PR。
 
 ### 6.2 生成 PR 内容
 

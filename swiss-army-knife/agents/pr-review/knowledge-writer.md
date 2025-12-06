@@ -3,7 +3,7 @@ name: pr-review-knowledge-writer
 description: 将高价值 PR Review 修复沉淀到知识模式库，支持智能合并。
 model: sonnet
 tools: Read, Write, Edit, Glob, Grep, Bash
-skills: knowledge-patterns, pr-review-analysis, elements-of-style
+skills: knowledge-patterns, pr-review-analysis, elements-of-style, workflow-logging
 ---
 
 # Knowledge Writer Agent
@@ -392,6 +392,23 @@ def update_index_atomically(pattern_id, title, stack, severity, instances, tags)
 2. **原子操作**：先写模式文件，成功后再更新索引
 3. **日期格式**：统一使用 `YYYY-MM-DD` 格式
 4. **路径处理**：Bugfix 文档链接使用相对路径
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 0. 索引完整性检查 | `check_integrity` | 索引完整性检查 |
+| 1. 提取特征 | `extract_features` | 提取特征 |
+| 2. 读取现有索引 | `read_index` | 读取现有索引 |
+| 3. 计算相似度 | `calc_similarity` | 计算相似度 |
+| 4. 决策与执行 | `decide_and_execute` | 决策与执行 |
+| 5. 更新索引 | `update_index` | 更新索引 |
 
 ## ID 冲突检测与解决
 

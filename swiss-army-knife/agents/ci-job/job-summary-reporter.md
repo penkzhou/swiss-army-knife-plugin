@@ -3,7 +3,7 @@ name: ci-job-summary-reporter
 description: Generates final reports for CI fix. Optionally commits and retries job.
 model: sonnet
 tools: Bash, Read, Write, Glob
-skills: ci-job-analysis, elements-of-style
+skills: ci-job-analysis, elements-of-style, workflow-logging
 ---
 
 # CI Job Summary Reporter Agent
@@ -379,3 +379,20 @@ read docs/bugfix/README.md
 - Commit message 遵循 conventional commits 格式
 - 知识沉淀只记录有价值的修复
 - Job retry 前确保代码已 push（如果需要）
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 汇总所有阶段结果 | `aggregate-results` | 汇总所有阶段结果 |
+| 2. 生成控制台报告 | `generate-console-report` | 生成控制台报告 |
+| 3. 创建 Git Commit | `create-commit` | 创建 Git Commit |
+| 4. 触发 Job 重新运行 | `trigger-retry` | 触发 Job 重新运行 |
+| 5. 知识沉淀 | `extract-knowledge` | 知识沉淀 |
+| 6. 标记 TodoWrite 完成 | `complete-todos` | 标记 TodoWrite 完成 |

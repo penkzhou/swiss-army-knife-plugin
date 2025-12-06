@@ -3,7 +3,7 @@ name: backend-quality-gate
 description: Verifies quality gates after fix implementation. Checks coverage, lint, typecheck, regressions.
 model: sonnet
 tools: Bash, Read, Grep
-skills: bugfix-workflow
+skills: bugfix-workflow, workflow-logging
 ---
 
 # Backend Quality Gate Agent
@@ -217,3 +217,19 @@ TOTAL                        80      3    96%
 - 警告应该记录但不阻塞
 - 覆盖率下降是阻塞项
 - 如有跳过的测试，需要说明原因
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 测试检查 | `test_check` | 测试检查 |
+| 2. 覆盖率检查 | `coverage_check` | 覆盖率检查 |
+| 3. Lint 检查 | `lint_check` | Lint 检查 |
+| 4. TypeCheck 检查 | `typecheck` | TypeCheck 检查 |
+| 5. 回归测试 | `regression_test` | 回归测试 |

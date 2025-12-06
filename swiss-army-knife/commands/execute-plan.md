@@ -1,7 +1,7 @@
 ---
 description: 执行实施计划（六阶段流程）
-argument-hint: "<PLAN_FILE> [--phase=0,1,2,3,4,5|all] [--dry-run] [--fast] [--skip-review] [--batch-size=N]"
-allowed-tools: Read, Task, AskUserQuestion
+argument-hint: "<PLAN_FILE> [--phase=0,1,2,3,4,5|all] [--dry-run] [--fast] [--skip-review] [--batch-size=N] [--log] [--verbose]"
+allowed-tools: Read, Task, AskUserQuestion, Bash
 ---
 
 # Execute Plan Workflow v2.0
@@ -24,6 +24,15 @@ allowed-tools: Read, Task, AskUserQuestion
 | `--fast` | 否 | `false` | 跳过方案细化（Phase 2） |
 | `--skip-review` | 否 | `false` | 跳过 Review 审查（Phase 4） |
 | `--batch-size=N` | 否 | `3` | 批次大小 |
+| `--log` | 否 | `false` | 启用过程日志（INFO 级别） |
+| `--verbose` | 否 | `false` | 启用详细日志（DEBUG 级别，隐含 --log） |
+
+### 日志参数说明
+
+- `--log`：记录 Phase/Agent 事件、置信度决策、用户交互
+- `--verbose`：额外记录完整的 agent 输入输出（文件可能较大）
+- 日志文件位置：`.claude/logs/swiss-army-knife/execute-plan/`
+- 生成两种格式：`.jsonl`（程序查询）和 `.log`（人类阅读）
 
 ---
 

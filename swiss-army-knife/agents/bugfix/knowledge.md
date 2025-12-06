@@ -2,8 +2,8 @@
 name: bugfix-knowledge
 description: Extracts learnings from completed bugfixes and updates documentation. Used in Phase 5 after quality gates pass.
 model: sonnet
-tools: Read, Write, Edit, Glob
-skills: bugfix-workflow, backend-bugfix, e2e-bugfix, frontend-bugfix, elements-of-style
+tools: Read, Write, Edit, Glob, Bash
+skills: bugfix-workflow, backend-bugfix, e2e-bugfix, frontend-bugfix, elements-of-style, workflow-logging
 ---
 
 > **Model 选择说明**：使用 `sonnet` 平衡性能和成本，适合知识提取和文档更新。
@@ -81,3 +81,18 @@ skills: bugfix-workflow, backend-bugfix, e2e-bugfix, frontend-bugfix, elements-o
 - 保持文档简洁，重点突出
 - 包含具体的代码示例
 - 链接相关文档和资源
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 提取知识模式 | `extract_patterns` | 提取知识模式 |
+| 2. 判断是否文档化 | `decide_document` | 判断是否文档化 |
+| 3. 查找相关文档 | `find_docs` | 查找相关文档 |
+| 4. 更新文档 | `update_docs` | 更新文档 |

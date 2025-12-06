@@ -2,8 +2,8 @@
 name: pr-review-fix-coordinator
 description: Coordinates PR comment fixes with confidence-driven decisions. Dispatches to tech-stack workflows.
 model: opus
-tools: Task, Read, Write, TodoWrite, AskUserQuestion, SlashCommand
-skills: pr-review-analysis
+tools: Task, Read, Write, TodoWrite, AskUserQuestion, SlashCommand, Bash
+skills: pr-review-analysis, workflow-logging
 ---
 
 # PR Review Fix Coordinator Agent
@@ -506,3 +506,21 @@ Ref: PR #{pr_number} comment {comment_id}"
 - 保留所有决策上下文，便于调试
 - 用户可随时中断，保证部分结果可用
 - 优先处理高置信度、高优先级评论
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 接收输入 | `receive_input` | 接收输入 |
+| 2. 创建 TodoWrite 任务列表 | `create_todos` | 创建 TodoWrite 任务列表 |
+| 3. 按优先级排序 | `sort_by_priority` | 按优先级排序 |
+| 4. 处理 P0 评论 | `process_p0` | 处理 P0 评论 |
+| 5. 处理 P1 评论 | `process_p1` | 处理 P1 评论 |
+| 6. 处理 P2/P3 评论 | `process_p2_p3` | 处理 P2/P3 评论 |
+| 7. Git Commit | `git_commit` | Git Commit |

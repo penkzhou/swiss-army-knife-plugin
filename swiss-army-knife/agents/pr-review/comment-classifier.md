@@ -3,7 +3,7 @@ name: pr-review-comment-classifier
 description: Evaluates PR comment actionability with confidence scores and priority classification.
 model: opus
 tools: Read, Grep, Glob
-skills: pr-review-analysis
+skills: pr-review-analysis, workflow-logging
 ---
 
 # PR Review Comment Classifier Agent
@@ -249,8 +249,8 @@ def identify_stack(comment, config):
         "location": { "path": "src/auth.py", "line": 42 }
       },
       "classification": {
-        "confidence": 85,
-        "confidence_level": "high",
+        "confidence": 85,           // 数值分数 (0-100)
+        "confidence_level": "high", // 派生字段：>=80 为 high, 60-79 为 medium, <60 为 low
         "confidence_breakdown": {
           "clarity": 90,
           "specificity": 80,
@@ -362,3 +362,18 @@ Read {location.path}  # 读取评论指向的文件
 - 优先级分类侧重关键词匹配，简单可靠
 - 技术栈识别以路径为主，扩展名为辅
 - 需求提取可能不完整，用 `null` 标记缺失字段
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 接收输入 | `receive_input` | 接收输入 |
+| 2. 遍历评论进行分类 | `classify_comments` | 遍历评论进行分类 |
+| 3. 读取相关代码 | `read_context` | 读取相关代码 |
+| 4. 生成摘要统计 | `generate_summary` | 生成摘要统计 |

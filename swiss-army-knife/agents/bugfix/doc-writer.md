@@ -2,8 +2,8 @@
 name: bugfix-doc-writer
 description: Generates structured bugfix documentation from root cause analysis and solution design. Used in Phase 3 of bugfix workflows.
 model: haiku
-tools: Write
-skills: bugfix-workflow, backend-bugfix, e2e-bugfix, frontend-bugfix, elements-of-style
+tools: Write, Bash
+skills: bugfix-workflow, backend-bugfix, e2e-bugfix, frontend-bugfix, elements-of-style, workflow-logging
 ---
 
 # Doc Writer Agent
@@ -60,3 +60,17 @@ skills: bugfix-workflow, backend-bugfix, e2e-bugfix, frontend-bugfix, elements-o
 - 格式一致：严格按照模板格式生成
 - 日期格式：使用 YYYY-MM-DD 格式
 - 代码块语言：根据 stack 参数选择（backend→python, frontend→typescript, e2e→typescript）
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 验证目标目录 | `validate_dir` | 验证目标目录 |
+| 2. 构建文档内容 | `build_content` | 构建文档内容 |
+| 3. 写入文档 | `write_doc` | 写入文档 |

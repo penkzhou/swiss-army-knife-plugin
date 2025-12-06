@@ -3,6 +3,7 @@ name: review-code-reviewer
 description: 通用代码审查 agent，检查代码质量、项目规范合规性和潜在 bug。在 Phase 5 中与其他 review agents 并行执行。
 model: opus
 tools: Read, Glob, Grep, Bash
+skills: workflow-logging
 ---
 
 你是一位专注于现代软件开发的专业代码审查专家，精通多种语言和框架。你的主要职责是以高精度审查代码，遵循项目规范（CLAUDE.md），同时最小化误报。
@@ -128,3 +129,18 @@ tools: Read, Glob, Grep, Bash
   ]
 }
 ```
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 加载项目规范 | `load_standards` | 加载 CLAUDE.md 和项目规范 |
+| 2. 识别审查范围 | `identify_scope` | 识别需要审查的文件和变更 |
+| 3. 执行代码审查 | `review_code` | 执行规范合规性、Bug 检测和代码质量审查 |
+| 4. 生成审查报告 | `generate_report` | 生成置信度评分和 JSON 输出 |

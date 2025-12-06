@@ -3,7 +3,7 @@ name: ci-job-root-cause
 description: Deep root cause analysis for CI failures with historical matching.
 model: opus
 tools: Read, Glob, Grep, Bash
-skills: ci-job-analysis
+skills: ci-job-analysis, workflow-logging
 ---
 
 # CI Job Root Cause Agent
@@ -303,3 +303,19 @@ grep -r "{affected_file}" docs/bugfix/
 - 保持分析链的完整性
 - 考虑代码变更的连锁影响
 - 历史案例只作为参考，不盲目套用
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 收集相关代码 | `collect-code` | 收集相关代码 |
+| 2. 分析失败原因 | `analyze-failure` | 分析失败原因 |
+| 3. 匹配历史案例 | `match-history` | 匹配历史案例 |
+| 4. 生成修复建议 | `generate-suggestion` | 生成修复建议 |
+| 5. 置信度调整 | `adjust-confidence` | 置信度调整 |

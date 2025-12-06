@@ -1,11 +1,102 @@
 # Multi-stack bugfix workflow 默认配置
 # 项目可通过 .claude/swiss-army-knife.yaml 覆盖
+#
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │ 运行时验证建议 (RUNTIME VALIDATION RECOMMENDATIONS)                          │
+# ├─────────────────────────────────────────────────────────────────────────────┤
+# │ 本配置文件定义了多个不变式和约束，建议在使用时进行以下验证：                  │
+# │                                                                              │
+# │ 1. 权重验证：                                                                │
+# │    - confidence_factors 权重之和必须等于 1.0                                 │
+# │    - 验证：sum(factors.values()) == 1.0                                     │
+# │    - 失败处理：警告并归一化权重                                              │
+# │                                                                              │
+# │ 2. 阈值排序验证：                                                            │
+# │    - confidence_threshold 必须满足降序排列                                   │
+# │    - 验证：auto_fix > ask_user > need_clarification/suggest_manual          │
+# │    - 失败处理：拒绝加载并报错                                                │
+# │                                                                              │
+# │ 3. 日志上下文验证：                                                          │
+# │    - logging 对象传递到 coordinator 链时应验证必需字段                       │
+# │    - 必需字段：enabled, level, session_id                                   │
+# │    - 失败处理：使用默认值 + 发出警告（不能静默）                              │
+# │    - 警告格式：`⚠️ 配置警告：logging.{field} 无效，使用默认值 {default}`     │
+# │                                                                              │
+# │ 4. Bash 脚本验证（开发阶段）：                                               │
+# │    - commands/*.md 中的 bash 代码块建议通过 shellcheck 验证                  │
+# │    - 验证：shellcheck <(extract_bash_blocks file.md)                        │
+# │    - CI 集成：可添加 pre-commit hook 自动验证                                │
+# │                                                                              │
+# │ 注意：由于这是一个纯 Markdown/YAML 配置项目，没有传统的单元测试框架。         │
+# │ 上述验证应在 agent 加载配置时实现，或通过 lint 工具在 CI 中检查。            │
+# │                                                                              │
+# │ 5. 配置回退警告（重要）：                                                    │
+# │    - 当配置验证失败使用默认值时，必须发出警告，禁止静默回退                    │
+# │    - 警告输出到 stderr，确保用户能看到                                       │
+# │    - 如果启用日志，同时写入日志文件                                          │
+# │    - 示例实现：                                                              │
+# │      ```python                                                               │
+# │      def validate_with_warning(field, value, default, validator):            │
+# │          if not validator(value):                                            │
+# │              print(f"⚠️ 配置警告：{field} 值 '{value}' 无效，"               │
+# │                    f"使用默认值 '{default}'", file=sys.stderr)               │
+# │              if log_ctx.enabled:                                             │
+# │                  log_warning("CONFIG_FALLBACK", f"{field}={value}→{default}")│
+# │              return default                                                  │
+# │          return value                                                        │
+# │      ```                                                                     │
+# └─────────────────────────────────────────────────────────────────────────────┘
 
 # 共享文档路径配置（各技术栈可覆盖）
 defaults:
   docs:
     bugfix_dir: "docs/bugfix"
     best_practices_dir: "docs/best-practices"
+
+# 过程日志配置
+# 通过 --log 或 --verbose 命令行选项启用
+logging:
+  # 是否默认启用日志（可被 --log 命令行选项覆盖）
+  enabled: false
+
+  # 默认日志级别（可被 --verbose 覆盖为 debug）
+  # info: 记录 Phase/Agent 事件、置信度决策、用户交互
+  # debug: 额外记录完整的 agent 输入输出（文件可能较大）
+  level: "info"
+
+  # 日志输出目录（相对于项目根目录）
+  output_dir: ".claude/logs/swiss-army-knife"
+
+  # 输出格式配置
+  formats:
+    jsonl: true   # JSON Lines 格式，便于 jq 查询
+    text: true    # 人类可读的文本格式
+
+  # 日志保留天数（0 = 永久保留）
+  retention_days: 30
+
+  # DEBUG 级别时是否包含完整的 agent 输入输出
+  # 警告：启用后日志文件可能非常大
+  include_agent_io: true
+
+# Bugfix 工作流置信度配置（根因分析阶段）
+# ┌─────────────────────────────────────────────────────────────────┐
+# │ 不变式 (INVARIANT): auto_continue > ask_user > stop            │
+# │ 当前: 60 > 40 > 0 ✓                                            │
+# │                                                                  │
+# │ 阈值定义的是下界（含），决策逻辑：                               │
+# │   confidence >= 60 → auto_continue (自动继续)                   │
+# │   confidence >= 40 → ask_user (询问用户)                        │
+# │   confidence < 40  → stop (停止执行)                            │
+# │                                                                  │
+# │ 注意：此阈值用于 Phase 1 根因分析，与 Review 阶段阈值(80)不同   │
+# │ 诊断允许较低阈值是因为根因分析本身存在不确定性                   │
+# └─────────────────────────────────────────────────────────────────┘
+bugfix:
+  confidence_threshold:
+    auto_continue: 60   # >= 60 自动继续到 Phase 2
+    ask_user: 40        # 40-59 询问用户是否继续
+    # < 40 停止执行，返回失败
 
 stacks:
   frontend:
@@ -121,7 +212,17 @@ stacks:
   pr_review:
     name: "PR Review Handler"
 
-    # 置信度阈值 (不变式: auto_fix > ask_user > need_clarification)
+    # 置信度阈值
+    # ┌─────────────────────────────────────────────────────────────────┐
+    # │ 不变式 (INVARIANT): auto_fix > ask_user > need_clarification    │
+    # │ 当前: 80 > 60 > 40 ✓                                           │
+    # │                                                                  │
+    # │ 阈值定义的是下界（含），决策逻辑：                               │
+    # │   confidence >= 80 → auto_fix                                   │
+    # │   confidence >= 60 → ask_user                                   │
+    # │   confidence >= 40 → need_clarification                         │
+    # │   confidence < 40  → skip (回复 reviewer)                       │
+    # └─────────────────────────────────────────────────────────────────┘
     confidence_threshold:
       auto_fix: 80           # >= 80 高置信度，自动修复
       ask_user: 60           # 60-79 中置信度，询问用户后处理
@@ -155,7 +256,15 @@ stacks:
       rate_limit_buffer: 10
       timeout_seconds: 30
 
-    # 置信度评分因素权重 (不变式: 权重之和 = 1.0)
+    # 置信度评分因素权重
+    # ┌─────────────────────────────────────────────────────────────────┐
+    # │ 不变式 (INVARIANT): 所有权重之和必须等于 1.0                     │
+    # │ 当前: 0.4 + 0.3 + 0.2 + 0.1 = 1.0 ✓                            │
+    # │                                                                  │
+    # │ 验证建议：使用此配置的 agent 应在启动时验证权重之和              │
+    # │ sum([clarity, specificity, context, reproducibility]) == 1.0    │
+    # │ 如果不等于 1.0，应发出警告并使用归一化后的权重                   │
+    # └─────────────────────────────────────────────────────────────────┘
     confidence_factors:
       clarity: 0.4        # 评论明确性
       specificity: 0.3    # 具体示例
@@ -296,14 +405,31 @@ stacks:
         signals: ["runner", "OOM", "killed", "disk space", "self-hosted"]
         auto_fixable: "none"
 
-    # 置信度阈值 (不变式: auto_fix > ask_user > suggest_manual)
+    # 置信度阈值
+    # ┌─────────────────────────────────────────────────────────────────┐
+    # │ 不变式 (INVARIANT): auto_fix > ask_user > suggest_manual        │
+    # │ 当前: 80 > 60 > 40 ✓                                           │
+    # │                                                                  │
+    # │ 阈值定义的是下界（含），决策逻辑：                               │
+    # │   confidence >= 80 → auto_fix                                   │
+    # │   confidence >= 60 → ask_user                                   │
+    # │   confidence >= 40 → suggest_manual                             │
+    # │   confidence < 40  → skip                                       │
+    # └─────────────────────────────────────────────────────────────────┘
     confidence_threshold:
       auto_fix: 80       # >= 80 自动修复
       ask_user: 60       # 60-79 询问用户
       suggest_manual: 40 # 40-59 建议手动
       # < 40 跳过，不处理
 
-    # 置信度评分因素权重 (不变式: 权重之和 = 1.0)
+    # 置信度评分因素权重
+    # ┌─────────────────────────────────────────────────────────────────┐
+    # │ 不变式 (INVARIANT): 所有权重之和必须等于 1.0                     │
+    # │ 当前: 0.4 + 0.3 + 0.2 + 0.1 = 1.0 ✓                            │
+    # │                                                                  │
+    # │ 验证建议：使用此配置的 agent 应在启动时验证权重之和              │
+    # │ 如果不等于 1.0，应发出警告并使用归一化后的权重                   │
+    # └─────────────────────────────────────────────────────────────────┘
     confidence_factors:
       signal_clarity: 0.4
       file_location: 0.3
@@ -346,7 +472,17 @@ stacks:
       max_parallel: 2           # 最大并行任务数
       pause_between: true       # 批次间暂停确认
 
-    # 置信度阈值 (不变式: auto_execute > ask_user > suggest_manual)
+    # 置信度阈值
+    # ┌─────────────────────────────────────────────────────────────────┐
+    # │ 不变式 (INVARIANT): auto_execute > ask_user > suggest_manual    │
+    # │ 当前: 80 > 60 > 40 ✓                                           │
+    # │                                                                  │
+    # │ 阈值定义的是下界（含），决策逻辑：                               │
+    # │   confidence >= 80 → auto_execute                               │
+    # │   confidence >= 60 → ask_user                                   │
+    # │   confidence >= 40 → suggest_manual                             │
+    # │   confidence < 40  → skip                                       │
+    # └─────────────────────────────────────────────────────────────────┘
     confidence_threshold:
       auto_execute: 80          # >= 80 自动执行
       ask_user: 60              # 60-79 询问用户

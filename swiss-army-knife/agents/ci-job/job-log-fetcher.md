@@ -3,7 +3,7 @@ name: ci-job-log-fetcher
 description: Fetches and parses GitHub Actions job logs. Extracts error-related excerpts.
 model: sonnet
 tools: Bash, Read, Write
-skills: ci-job-analysis
+skills: ci-job-analysis, workflow-logging
 ---
 
 # CI Job Log Fetcher Agent
@@ -352,3 +352,19 @@ Error: message
 - 保存完整日志到临时文件供后续分析
 - 注意处理 ANSI 颜色代码（需要清理）
 - 时间戳可能有不同格式，需要统一处理
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 下载 Job 日志 | `download-logs` | 下载 Job 日志 |
+| 2. 解析日志结构 | `parse-structure` | 解析日志结构 |
+| 3. 识别失败的 Steps | `identify-failures` | 识别失败的 Steps |
+| 4. 提取错误详情 | `extract-errors` | 提取错误详情 |
+| 5. 初步分类 | `preliminary-classify` | 初步分类 |

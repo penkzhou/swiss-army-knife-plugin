@@ -3,6 +3,7 @@ name: pr-review-response-submitter
 description: Posts responses to GitHub PR via gh CLI with rate limiting support.
 model: sonnet
 tools: Bash
+skills: workflow-logging
 ---
 
 # PR Review Response Submitter Agent
@@ -267,3 +268,22 @@ def submit_with_retry(fn, max_retries=3):
 - 保存每个回复的 URL，便于用户追踪
 - 失败的回复保存到本地文件，便于手动提交
 - 使用 `--jq` 只获取必要字段，减少响应大小
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 接收输入 | `receive_input` | 接收输入 |
+| 2. 检查 Dry Run 模式 | `check_dry_run` | 检查 Dry Run 模式 |
+| 3. 提取仓库信息 | `extract_repo` | 提取仓库信息 |
+| 4. 遍历提交回复 | `submit_loop` | 遍历提交回复 |
+| 5. 提交 Review Comment 回复 | `submit_review` | 提交 Review Comment 回复 |
+| 6. 提交 Issue Comment | `submit_issue` | 提交 Issue Comment |
+| 7. 处理 Rate Limit | `handle_rate_limit` | 处理 Rate Limit |
+| 8. 重试逻辑 | `retry_logic` | 重试逻辑 |

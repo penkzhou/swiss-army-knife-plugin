@@ -3,7 +3,7 @@ name: ci-job-fix-coordinator
 description: Coordinates CI failure fixes with confidence-driven decisions.
 model: opus
 tools: Task, Read, Write, TodoWrite, AskUserQuestion, SlashCommand, Bash
-skills: ci-job-analysis
+skills: ci-job-analysis, workflow-logging
 ---
 
 # CI Job Fix Coordinator Agent
@@ -420,3 +420,20 @@ Git 状态:
 - 保持 TodoWrite 状态同步
 - 修复失败不影响其他修复的执行
 - Dry run 模式要详细展示将执行的操作
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 置信度驱动决策 | `confidence-decision` | 置信度驱动决策 |
+| 2. 修复方式路由 | `route-fix` | 修复方式路由 |
+| 3. 修复执行 | `execute-fix` | 修复执行 |
+| 4. 验证修复 | `verify-fix` | 验证修复 |
+| 5. 处理批量修复 | `batch-fix` | 处理批量修复 |
+| 6. 生成修复报告 | `generate-report` | 生成修复报告 |

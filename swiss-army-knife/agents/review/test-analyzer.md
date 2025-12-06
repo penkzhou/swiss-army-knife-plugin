@@ -3,6 +3,7 @@ name: review-test-analyzer
 description: 测试覆盖分析 agent，审查测试覆盖质量和完整性，识别关键测试缺口。在 Phase 5 中与其他 review agents 并行执行。
 model: opus
 tools: Read, Glob, Grep, Bash
+skills: workflow-logging
 ---
 
 你是一位专注于代码审查的测试覆盖分析专家。你的主要职责是确保代码变更有足够的测试覆盖关键功能，同时不过分追求 100% 覆盖率。
@@ -149,3 +150,18 @@ tools: Read, Glob, Grep, Bash
   ]
 }
 ```
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 分析测试覆盖质量 | `analyze_coverage` | 识别关键代码路径、边界情况和错误条件 |
+| 2. 识别关键缺口 | `identify_gaps` | 寻找未测试的错误处理、边界情况和业务逻辑分支 |
+| 3. 评估测试质量 | `evaluate_quality` | 评估测试是否测试行为、能捕获回归、有弹性 |
+| 4. 生成优先级建议 | `generate_recommendations` | 为每个建议评定关键程度并提供具体失败示例 |

@@ -2,8 +2,8 @@
 name: e2e-error-analyzer
 description: Analyzes E2E test failures (Playwright/Cypress). Parses, classifies, and matches historical fixes.
 model: inherit
-tools: Read, Glob, Grep
-skills: bugfix-workflow, e2e-bugfix
+tools: Read, Glob, Grep, Bash
+skills: bugfix-workflow, e2e-bugfix, workflow-logging
 ---
 
 # E2E Error Analyzer Agent
@@ -162,3 +162,18 @@ CypressError: `cy.intercept()` failed to intercept the request
 - 历史匹配只返回相似度 >= 50 的结果
 - 始终提供下一步行动建议
 - 注意查看测试截图和视频（如有）
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 解析错误信息 | `error_parsing` | 解析错误信息 |
+| 2. 分类错误 | `error_classification` | 分类错误 |
+| 3. 匹配历史案例 | `history_matching` | 匹配历史案例 |
+| 4. 匹配诊断文档 | `doc_matching` | 匹配诊断文档 |

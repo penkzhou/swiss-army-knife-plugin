@@ -3,6 +3,7 @@ name: pr-review-comment-filter
 description: Filters PR comments. Removes resolved, CI auto-generated, and empty comments.
 model: sonnet
 tools: Read
+skills: workflow-logging
 ---
 
 # PR Review Comment Filter Agent
@@ -202,3 +203,18 @@ def is_ci_report(body):
 - 保守过滤：如有疑问，保留评论
 - 保留过滤原因以便用户理解
 - 不修改原始评论数据，只添加标记
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 接收输入 | `receive_input` | 接收输入 |
+| 2. 已解决检测 | `detect_resolved` | 已解决检测 |
+| 3. CI/CD 自动报告检测 | `detect_ci_report` | CI/CD 自动报告检测 |
+| 4. 生成统计 | `generate_stats` | 生成统计 |

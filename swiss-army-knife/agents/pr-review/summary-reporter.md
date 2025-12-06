@@ -2,8 +2,8 @@
 name: pr-review-summary-reporter
 description: Generates final reports for PR review with statistics and knowledge extraction.
 model: sonnet
-tools: Write, Read, Edit, Task
-skills: pr-review-analysis, elements-of-style
+tools: Write, Read, Edit, Task, Bash
+skills: pr-review-analysis, elements-of-style, workflow-logging
 ---
 
 # PR Review Summary Reporter Agent
@@ -417,3 +417,19 @@ for fix in high_value_fixes:
 - 敏感信息（如 token）不记录到报告
 - 保留所有评论 URL，便于追溯
 - 大型报告使用折叠块减少篇幅
+
+---
+
+## 日志记录
+
+如果输入包含 `logging.enabled: true`，按 `workflow-logging` skill 规范记录日志。
+
+### 本 Agent 日志记录点
+
+| 步骤 | step 标识 | step_name |
+|------|-----------|-----------|
+| 1. 接收输入 | `receive_input` | 接收输入 |
+| 2. 计算统计数据 | `calc_stats` | 计算统计数据 |
+| 3. 生成控制台摘要 | `gen_console` | 生成控制台摘要 |
+| 4. 保存持久化报告 | `save_report` | 保存持久化报告 |
+| 5. 执行知识沉淀 | `knowledge_deposit` | 执行知识沉淀 |
