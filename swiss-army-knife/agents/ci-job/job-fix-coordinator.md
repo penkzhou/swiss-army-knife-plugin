@@ -437,3 +437,16 @@ Git 状态:
 | 4. 验证修复 | `verify-fix` | 验证修复 |
 | 5. 处理批量修复 | `batch-fix` | 处理批量修复 |
 | 6. 生成修复报告 | `generate-report` | 生成修复报告 |
+
+### 日志函数使用
+
+> 所有日志函数模板已定义在 `skills/workflow-logging/SKILL.md`，在每个步骤中使用：
+> - `log_step_start(phase, agent_name, step_id, step_name, step_index, total_steps)` - 步骤开始
+> - `log_confidence_decision(phase, score, decision, threshold)` - 置信度决策
+> - `log_user_ask/answer()` - 用户交互
+> - `log_analysis_result(phase, agent_name, analysis_type, result)` - 分析结果
+> - `log_agent_call/result()` - 调用 bugfix 工作流
+> - `log_data_collected(phase, agent_name, data_type, summary)` - 数据收集
+> - `log_step_end(phase, agent_name, step_id, status, result_summary)` - 步骤结束
+> - `log_warning(phase, code, message)` - 警告（冲突、重试）
+> - `log_error(phase, code, message)` - 错误（修复失败、系统性错误）

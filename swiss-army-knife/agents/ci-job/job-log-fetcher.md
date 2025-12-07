@@ -368,3 +368,13 @@ Error: message
 | 3. 识别失败的 Steps | `identify-failures` | 识别失败的 Steps |
 | 4. 提取错误详情 | `extract-errors` | 提取错误详情 |
 | 5. 初步分类 | `preliminary-classify` | 初步分类 |
+
+### 日志函数使用
+
+> 所有日志函数模板已定义在 `skills/workflow-logging/SKILL.md`，在每个步骤中使用：
+> - `log_step_start(phase, agent_name, step_id, step_name, step_index, total_steps)` - 步骤开始
+> - `log_data_collected(phase, agent_name, data_type, summary)` - 数据收集
+> - `log_step_end(phase, agent_name, step_id, status, result_summary)` - 步骤结束
+> - `log_warning(phase, code, message)` - 警告（如使用备用方案时）
+>
+> DEBUG 级别时额外记录：`log_tool_use(tool, target, status)`

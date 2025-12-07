@@ -87,7 +87,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
              ├─ Phase 5: review-coordinator (共享) + 本地验证
              │       ├─ 6 个 review agents (并行)
              │       └─ review-fixer agent (最多 3 次循环)
-             └─ Phase 6: summary-reporter agent → 报告、可选 git commit、可选 job retry
+             └─ Phase 6: summary-reporter agent → 报告、知识沉淀、可选 git commit、可选 job retry
 ```
 
 #### 计划执行工作流 (6 阶段，Phase 0-5)

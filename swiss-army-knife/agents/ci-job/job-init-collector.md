@@ -92,6 +92,8 @@ job_url: "https://github.com/owner/repo/actions/runs/12345/job/67890"
 
 ## 执行步骤
 
+> **日志记录**：如果输入包含 `logging.enabled: true`，在每个步骤记录 STEP_START/END 日志。
+
 ### 1. 解析 Job URL
 
 #### 1.1 URL 格式验证
@@ -358,3 +360,11 @@ gh api repos/{owner}/{repo} --jq '{default_branch: .default_branch, permissions:
 | 3. 获取 Job 元信息 | `fetch-metadata` | 获取 Job 元信息 |
 | 4. 配置加载 | `load-config` | 配置加载 |
 | 5. 获取仓库信息 | `fetch-repo-info` | 获取仓库信息 |
+
+### 日志函数使用
+
+> 所有日志函数模板已定义在 `skills/workflow-logging/SKILL.md`，在每个步骤中使用：
+> - `log_step_start(phase, agent_name, step_id, step_name, step_index, total_steps)` - 步骤开始
+> - `log_data_collected(phase, agent_name, data_type, summary)` - 数据收集
+> - `log_step_end(phase, agent_name, step_id, status, result_summary)` - 步骤结束
+> - `log_warning(phase, code, message)` - 警告（如配置解析错误时）

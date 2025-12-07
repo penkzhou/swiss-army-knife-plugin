@@ -65,6 +65,13 @@ description: 工作流过程日志格式规范和写入模式。定义 JSONL 和
 | REVIEW_PARALLEL_END | 并行审查结束 | 6 个 agents 全部返回 |
 | REVIEW_FIX_ITERATION | Fix 循环迭代 | 每次 review-fix 循环 |
 
+### 知识沉淀事件
+
+| 类型 | 说明 | 时机 |
+|------|------|------|
+| KNOWLEDGE_EXTRACTION | 知识提取完成 | 从修复中提取可复用模式 |
+| KNOWLEDGE_SKIPPED | 知识沉淀跳过 | 不符合沉淀条件时 |
+
 ### 警告和错误
 
 | 类型 | 说明 | 时机 |
@@ -394,6 +401,38 @@ description: 工作流过程日志格式规范和写入模式。定义 JSONL 和
 }
 ```
 
+### KNOWLEDGE_EXTRACTION / KNOWLEDGE_SKIPPED
+
+```json
+{
+  "ts": "2024-12-06T14:38:00.000Z",
+  "level": "I",
+  "type": "KNOWLEDGE_EXTRACTION",
+  "session_id": "a1b2c3d4",
+  "phase": "phase_6",
+  "result": {
+    "extracted": true,
+    "pattern_name": "version_guard_test_update",
+    "doc_path": "docs/bugfix/2024-12-06-ci-version-guard.md",
+    "tags": ["ci", "test_failure", "version_guard"],
+    "confidence": 95,
+    "reusable": true
+  }
+}
+```
+
+```json
+{
+  "ts": "2024-12-06T14:38:00.000Z",
+  "level": "I",
+  "type": "KNOWLEDGE_SKIPPED",
+  "session_id": "a1b2c3d4",
+  "phase": "phase_6",
+  "reason": "one_time_issue",
+  "details": "修复仅涉及特定配置文件的 typo，不具备复用价值"
+}
+```
+
 ### WARNING / ERROR
 
 ```json
@@ -465,6 +504,7 @@ description: 工作流过程日志格式规范和写入模式。定义 JSONL 和
 [2024-12-06 14:35:00.000] INFO | REVIEW_START | 6 agents: code-reviewer,silent-failure-hunter,...
 [2024-12-06 14:35:30.000] INFO | REVIEW_END   | 30000ms | issues=4 | fixable=3
 [2024-12-06 14:36:00.000] INFO | REVIEW_FIX   | iteration=1 | before=4 | after=1 | fixed=3
+[2024-12-06 14:38:00.000] INFO | KNOWLEDGE    | extracted | pattern=version_guard_test_update | confidence=95
 [2024-12-06 14:40:00.000] INFO | SESSION_END  | success | 548000ms | files=2 | issues_fixed=4
 ```
 
@@ -654,4 +694,429 @@ grep "DECN" xxx.log
 
 # 查看特定 agent
 grep "frontend-root-cause" xxx.log
+```
+
+---
+
+## 可复用日志函数模板
+
+本节提供可复用的 bash 函数模板，用于减少各 agent 中的日志记录代码重复。
+
+### 跨平台时间戳函数
+
+macOS 的 BSD date 不支持 `%3N`（毫秒），需要使用兼容方案：
+
+```bash
+# 获取 ISO 8601 时间戳（UTC）
+get_iso_timestamp() {
+    date -u +"%Y-%m-%dT%H:%M:%S.000Z"
+}
+
+# 获取人类可读时间戳
+get_readable_timestamp() {
+    date +"%Y-%m-%d %H:%M:%S.000"
+}
+
+# 获取毫秒级时间戳（跨平台兼容）
+# macOS: 使用 perl 或 python；Linux: 使用 date +%s%3N
+get_millis() {
+    if command -v perl >/dev/null 2>&1; then
+        perl -MTime::HiRes=time -e 'printf "%.0f\n", time * 1000'
+    elif command -v python3 >/dev/null 2>&1; then
+        python3 -c 'import time; print(int(time.time() * 1000))'
+    else
+        # 降级为秒级精度
+        echo "$(($(date +%s) * 1000))"
+    fi
+}
+
+# 计算耗时（毫秒）
+calc_duration() {
+    local start_ms=$1
+    local end_ms=$(get_millis)
+    echo $((end_ms - start_ms))
+}
+```
+
+### 日志上下文初始化
+
+在 Master Coordinator 初始化时使用：
+
+```bash
+# 初始化日志上下文
+# 参数: workflow, session_id, identifier (如 job-67890, frontend, pr-123)
+init_log_context() {
+    local workflow=$1
+    local session_id=$2
+    local identifier=$3
+
+    local log_dir=".claude/logs/swiss-army-knife/${workflow}"
+    mkdir -p "${log_dir}"
+
+    local timestamp=$(date +"%Y-%m-%d_%H%M%S")
+    local jsonl_file="${log_dir}/${timestamp}_${identifier}_${session_id}.jsonl"
+    local log_file="${log_dir}/${timestamp}_${identifier}_${session_id}.log"
+
+    # 导出为环境变量供后续使用
+    export LOG_JSONL="${jsonl_file}"
+    export LOG_TEXT="${log_file}"
+    export LOG_SESSION="${session_id}"
+    export LOG_START_MS=$(get_millis)
+
+    echo "${jsonl_file}|${log_file}"
+}
+```
+
+### Phase 日志函数
+
+```bash
+# Phase 开始日志
+# 参数: phase_num, phase_name, agents (逗号分隔)
+log_phase_start() {
+    local phase_num=$1
+    local phase_name=$2
+    local agents=$3  # 可选，逗号分隔的 agent 列表
+
+    local agents_json="[]"
+    if [[ -n "${agents}" ]]; then
+        agents_json=$(echo "${agents}" | jq -Rc 'split(",")')
+    fi
+
+    echo '{"ts":"'$(get_iso_timestamp)'","level":"I","type":"PHASE_START","session_id":"'${LOG_SESSION}'","phase":"phase_'${phase_num}'","phase_name":"'${phase_name}'","agents":'${agents_json}'}' >> "${LOG_JSONL}"
+    echo '['"$(get_readable_timestamp)"'] INFO | PHASE_START  | Phase '${phase_num}': '${phase_name}'' >> "${LOG_TEXT}"
+}
+
+# Phase 结束日志
+# 参数: phase_num, status, duration_ms
+log_phase_end() {
+    local phase_num=$1
+    local status=$2
+    local duration_ms=$3
+
+    echo '{"ts":"'$(get_iso_timestamp)'","level":"I","type":"PHASE_END","session_id":"'${LOG_SESSION}'","phase":"phase_'${phase_num}'","status":"'${status}'","duration_ms":'${duration_ms}'}' >> "${LOG_JSONL}"
+    echo '['"$(get_readable_timestamp)"'] INFO | PHASE_END    | Phase '${phase_num}' | '${status}' | '${duration_ms}'ms' >> "${LOG_TEXT}"
+}
+```
+
+### Agent 调用日志函数
+
+```bash
+# Agent 调用开始日志
+# 参数: phase_num, agent_name, model, input_summary
+log_agent_call() {
+    local phase_num=$1
+    local agent_name=$2
+    local model=$3
+    local input_summary=$4  # 可选
+
+    export AGENT_START_MS=$(get_millis)
+
+    local summary_field=""
+    if [[ -n "${input_summary}" ]]; then
+        summary_field=',"input_summary":"'${input_summary}'"'
+    fi
+
+    echo '{"ts":"'$(get_iso_timestamp)'","level":"I","type":"AGENT_CALL","session_id":"'${LOG_SESSION}'","phase":"phase_'${phase_num}'","agent":"'${agent_name}'","model":"'${model}'"'${summary_field}'}' >> "${LOG_JSONL}"
+    echo '['"$(get_readable_timestamp)"'] INFO | AGENT_CALL   | '${agent_name}' ('${model}')' >> "${LOG_TEXT}"
+}
+
+# Agent 返回日志
+# 参数: phase_num, agent_name, status, output_summary_json (可选)
+log_agent_result() {
+    local phase_num=$1
+    local agent_name=$2
+    local status=$3
+    local output_summary=$4  # 可选，JSON 格式
+
+    local duration_ms=$(calc_duration ${AGENT_START_MS})
+
+    local summary_field=""
+    if [[ -n "${output_summary}" ]]; then
+        summary_field=',"output_summary":'${output_summary}''
+    fi
+
+    echo '{"ts":"'$(get_iso_timestamp)'","level":"I","type":"AGENT_RESULT","session_id":"'${LOG_SESSION}'","phase":"phase_'${phase_num}'","agent":"'${agent_name}'","status":"'${status}'","duration_ms":'${duration_ms}''${summary_field}'}' >> "${LOG_JSONL}"
+    echo '['"$(get_readable_timestamp)"'] INFO | AGENT_RESULT | '${agent_name}' | '${status}' | '${duration_ms}'ms' >> "${LOG_TEXT}"
+}
+```
+
+### Step 日志函数（Phase Agent 内部使用）
+
+```bash
+# Step 开始日志
+# 参数: phase, agent_name, step_id, step_name, step_index, total_steps
+log_step_start() {
+    local phase=$1
+    local agent_name=$2
+    local step_id=$3
+    local step_name=$4
+    local step_index=$5
+    local total_steps=$6
+
+    export STEP_START_MS=$(get_millis)
+
+    echo '{"ts":"'$(get_iso_timestamp)'","level":"I","type":"STEP_START","session_id":"'${LOG_SESSION}'","phase":"'${phase}'","agent":"'${agent_name}'","step":"'${step_id}'","step_name":"'${step_name}'","step_index":'${step_index}',"total_steps":'${total_steps}'}' >> "${LOG_JSONL}"
+    echo '['"$(get_readable_timestamp)"'] INFO | STEP_START   | '${agent_name}' | 步骤 '${step_index}'/'${total_steps}': '${step_name}'' >> "${LOG_TEXT}"
+}
+
+# Step 结束日志
+# 参数: phase, agent_name, step_id, status, result_summary_json (可选)
+log_step_end() {
+    local phase=$1
+    local agent_name=$2
+    local step_id=$3
+    local status=$4
+    local result_summary=$5  # 可选，JSON 格式
+
+    local duration_ms=$(calc_duration ${STEP_START_MS})
+
+    local summary_field=""
+    if [[ -n "${result_summary}" ]]; then
+        summary_field=',"result_summary":'${result_summary}''
+    fi
+
+    echo '{"ts":"'$(get_iso_timestamp)'","level":"I","type":"STEP_END","session_id":"'${LOG_SESSION}'","phase":"'${phase}'","agent":"'${agent_name}'","step":"'${step_id}'","status":"'${status}'","duration_ms":'${duration_ms}''${summary_field}'}' >> "${LOG_JSONL}"
+    echo '['"$(get_readable_timestamp)"'] INFO | STEP_END     | '${agent_name}' | 步骤完成 | '${duration_ms}'ms' >> "${LOG_TEXT}"
+}
+```
+
+### 数据收集日志函数
+
+```bash
+# 数据收集日志
+# 参数: phase, agent_name, data_type, summary_json
+log_data_collected() {
+    local phase=$1
+    local agent_name=$2
+    local data_type=$3
+    local summary_json=$4
+
+    echo '{"ts":"'$(get_iso_timestamp)'","level":"I","type":"DATA_COLLECTED","session_id":"'${LOG_SESSION}'","phase":"'${phase}'","agent":"'${agent_name}'","data_type":"'${data_type}'","summary":'${summary_json}'}' >> "${LOG_JSONL}"
+    echo '['"$(get_readable_timestamp)"'] INFO | DATA_COLLECT | '${agent_name}' | '${data_type}'' >> "${LOG_TEXT}"
+}
+```
+
+### 决策日志函数
+
+```bash
+# 置信度决策日志
+# 参数: phase, score, decision, threshold
+log_confidence_decision() {
+    local phase=$1
+    local score=$2
+    local decision=$3
+    local threshold=$4
+
+    echo '{"ts":"'$(get_iso_timestamp)'","level":"X","type":"CONFIDENCE_DECISION","session_id":"'${LOG_SESSION}'","phase":"'${phase}'","confidence_score":'${score}',"decision":"'${decision}'","threshold":'${threshold}'}' >> "${LOG_JSONL}"
+    echo '['"$(get_readable_timestamp)"'] DECN | CONFIDENCE   | score='${score}' | decision='${decision}' | threshold='${threshold}'' >> "${LOG_TEXT}"
+}
+
+# 用户交互日志 - 提问
+# 参数: phase, question, options (逗号分隔)
+log_user_ask() {
+    local phase=$1
+    local question=$2
+    local options=$3
+
+    local options_json=$(echo "${options}" | jq -Rc 'split(",")')
+
+    echo '{"ts":"'$(get_iso_timestamp)'","level":"X","type":"USER_INTERACTION","session_id":"'${LOG_SESSION}'","phase":"'${phase}'","interaction_type":"AskUserQuestion","question":"'${question}'","options":'${options_json}'}' >> "${LOG_JSONL}"
+    echo '['"$(get_readable_timestamp)"'] DECN | USER_ASK     | "'${question}'"' >> "${LOG_TEXT}"
+}
+
+# 用户交互日志 - 回答
+# 参数: phase, response, wait_ms
+log_user_answer() {
+    local phase=$1
+    local response=$2
+    local wait_ms=$3
+
+    echo '{"ts":"'$(get_iso_timestamp)'","level":"X","type":"USER_INTERACTION","session_id":"'${LOG_SESSION}'","phase":"'${phase}'","user_response":"'${response}'","wait_duration_ms":'${wait_ms}'}' >> "${LOG_JSONL}"
+    echo '['"$(get_readable_timestamp)"'] DECN | USER_ANSWER  | "'${response}'" | wait='${wait_ms}'ms' >> "${LOG_TEXT}"
+}
+```
+
+### 警告和错误日志函数
+
+```bash
+# 警告日志
+# 参数: phase, code, message
+log_warning() {
+    local phase=$1
+    local code=$2
+    local message=$3
+
+    echo '{"ts":"'$(get_iso_timestamp)'","level":"W","type":"WARNING","session_id":"'${LOG_SESSION}'","phase":"'${phase}'","code":"'${code}'","message":"'${message}'"}' >> "${LOG_JSONL}"
+    echo '['"$(get_readable_timestamp)"'] WARN | WARNING      | ['${code}'] '${message}'' >> "${LOG_TEXT}"
+}
+
+# 错误日志
+# 参数: phase, code, message
+log_error() {
+    local phase=$1
+    local code=$2
+    local message=$3
+
+    echo '{"ts":"'$(get_iso_timestamp)'","level":"E","type":"ERROR","session_id":"'${LOG_SESSION}'","phase":"'${phase}'","code":"'${code}'","message":"'${message}'"}' >> "${LOG_JSONL}"
+    echo '['"$(get_readable_timestamp)"'] ERROR| ERROR        | ['${code}'] '${message}'' >> "${LOG_TEXT}"
+}
+```
+
+### Session 日志函数
+
+```bash
+# Session 开始日志
+# 参数: workflow, command, args_json, env_json
+log_session_start() {
+    local workflow=$1
+    local command=$2
+    local args_json=$3
+    local env_json=$4
+
+    echo '{"ts":"'$(get_iso_timestamp)'","level":"I","type":"SESSION_START","session_id":"'${LOG_SESSION}'","workflow":"'${workflow}'","command":"'${command}'","args":'${args_json}',"env":'${env_json}'}' >> "${LOG_JSONL}"
+    echo '['"$(get_readable_timestamp)"'] INFO | SESSION_START | '${workflow}' ('${LOG_SESSION}')' >> "${LOG_TEXT}"
+}
+
+# Session 结束日志
+# 参数: status, summary_json, phases_completed (逗号分隔)
+log_session_end() {
+    local status=$1
+    local summary_json=$2
+    local phases_completed=$3
+
+    local total_duration=$(calc_duration ${LOG_START_MS})
+    local phases_json=$(echo "${phases_completed}" | jq -Rc 'split(",")')
+
+    echo '{"ts":"'$(get_iso_timestamp)'","level":"I","type":"SESSION_END","session_id":"'${LOG_SESSION}'","status":"'${status}'","total_duration_ms":'${total_duration}',"phases_completed":'${phases_json}',"summary":'${summary_json}'}' >> "${LOG_JSONL}"
+    echo '['"$(get_readable_timestamp)"'] INFO | SESSION_END  | '${status}' | '${total_duration}'ms' >> "${LOG_TEXT}"
+}
+```
+
+### Review 事件日志函数
+
+```bash
+# Review 并行开始日志
+# 参数: phase, agents (逗号分隔)
+log_review_parallel_start() {
+    local phase=$1
+    local agents=$2
+
+    local agents_json=$(echo "${agents}" | jq -Rc 'split(",")')
+
+    echo '{"ts":"'$(get_iso_timestamp)'","level":"I","type":"REVIEW_PARALLEL_START","session_id":"'${LOG_SESSION}'","phase":"'${phase}'","agents":'${agents_json}'}' >> "${LOG_JSONL}"
+    echo '['"$(get_readable_timestamp)"'] INFO | REVIEW_START | agents='${agents}'' >> "${LOG_TEXT}"
+}
+
+# Review 并行结束日志
+# 参数: phase, duration_ms, results_json
+log_review_parallel_end() {
+    local phase=$1
+    local duration_ms=$2
+    local results_json=$3
+
+    echo '{"ts":"'$(get_iso_timestamp)'","level":"I","type":"REVIEW_PARALLEL_END","session_id":"'${LOG_SESSION}'","phase":"'${phase}'","duration_ms":'${duration_ms}',"results":'${results_json}'}' >> "${LOG_JSONL}"
+    echo '['"$(get_readable_timestamp)"'] INFO | REVIEW_END   | '${duration_ms}'ms' >> "${LOG_TEXT}"
+}
+
+# Review-Fix 迭代日志
+# 参数: phase, iteration, issues_before, issues_after
+log_review_fix_iteration() {
+    local phase=$1
+    local iteration=$2
+    local issues_before=$3
+    local issues_after=$4
+
+    local fixed_count=$((issues_before - issues_after))
+
+    echo '{"ts":"'$(get_iso_timestamp)'","level":"I","type":"REVIEW_FIX_ITERATION","session_id":"'${LOG_SESSION}'","phase":"'${phase}'","iteration":'${iteration}',"issues_before":'${issues_before}',"issues_after":'${issues_after}',"fixed_count":'${fixed_count}'}' >> "${LOG_JSONL}"
+    echo '['"$(get_readable_timestamp)"'] INFO | REVIEW_FIX   | iteration='${iteration}' | before='${issues_before}' | after='${issues_after}' | fixed='${fixed_count}'' >> "${LOG_TEXT}"
+}
+```
+
+### Knowledge 事件日志函数
+
+```bash
+# 知识提取日志
+# 参数: phase, pattern_name, doc_path, confidence
+log_knowledge_extraction() {
+    local phase=$1
+    local pattern_name=$2
+    local doc_path=$3
+    local confidence=$4
+
+    echo '{"ts":"'$(get_iso_timestamp)'","level":"I","type":"KNOWLEDGE_EXTRACTION","session_id":"'${LOG_SESSION}'","phase":"'${phase}'","result":{"extracted":true,"pattern_name":"'${pattern_name}'","doc_path":"'${doc_path}'","confidence":'${confidence}'}}' >> "${LOG_JSONL}"
+    echo '['"$(get_readable_timestamp)"'] INFO | KNOWLEDGE    | extracted | pattern='${pattern_name}' | confidence='${confidence}'' >> "${LOG_TEXT}"
+}
+
+# 知识跳过日志
+# 参数: phase, reason, details
+log_knowledge_skipped() {
+    local phase=$1
+    local reason=$2
+    local details=$3
+
+    echo '{"ts":"'$(get_iso_timestamp)'","level":"I","type":"KNOWLEDGE_SKIPPED","session_id":"'${LOG_SESSION}'","phase":"'${phase}'","reason":"'${reason}'","details":"'${details}'"}' >> "${LOG_JSONL}"
+    echo '['"$(get_readable_timestamp)"'] INFO | KNOWLEDGE    | skipped | reason='${reason}'' >> "${LOG_TEXT}"
+}
+```
+
+### 使用示例
+
+#### Master Coordinator 中使用
+
+```bash
+# 初始化日志
+if [[ "${logging_enabled}" == "true" ]]; then
+    init_log_context "ci-job" "${session_id}" "job-${job_id}"
+    log_session_start "ci-job" "/fix-failed-job" '{"dry_run":false}' '{"project":"'"${PWD}"'"}'
+fi
+
+# Phase 0
+log_phase_start 0 "初始化" "ci-job-init-collector"
+log_agent_call 0 "ci-job-init-collector" "sonnet" "解析URL、验证gh"
+
+# ... 调用 agent ...
+
+log_agent_result 0 "ci-job-init-collector" "success" '{"job_id":"67890"}'
+log_phase_end 0 "success" 5000
+```
+
+#### Phase Agent 内部使用
+
+```bash
+# 步骤 1
+log_step_start "phase_0" "ci-job-init-collector" "parse-url" "解析 Job URL" 1 5
+
+# ... 执行步骤 ...
+
+log_step_end "phase_0" "ci-job-init-collector" "parse-url" "success" '{"owner":"foo","repo":"bar"}'
+
+# 数据收集
+log_data_collected "phase_0" "ci-job-init-collector" "job_metadata" '{"job_id":"67890"}'
+```
+
+### 日志上下文传递
+
+当调用子 agent 时，传递日志上下文：
+
+```json
+{
+  "logging": {
+    "enabled": true,
+    "level": "info",
+    "session_id": "a1b2c3d4",
+    "log_files": {
+      "jsonl": ".claude/logs/swiss-army-knife/ci-job/xxx.jsonl",
+      "text": ".claude/logs/swiss-army-knife/ci-job/xxx.log"
+    }
+  }
+}
+```
+
+子 agent 收到后，设置环境变量即可使用上述函数：
+
+```bash
+export LOG_JSONL="${logging.log_files.jsonl}"
+export LOG_TEXT="${logging.log_files.text}"
+export LOG_SESSION="${logging.session_id}"
 ```

@@ -1,7 +1,7 @@
 ---
 name: ci-job-summary-reporter
 description: Generates final reports for CI fix. Optionally commits and retries job.
-model: sonnet
+model: inherit
 tools: Bash, Read, Write, Glob
 skills: ci-job-analysis, elements-of-style, workflow-logging
 ---
@@ -396,3 +396,37 @@ read docs/bugfix/README.md
 | 4. 触发 Job 重新运行 | `trigger-retry` | 触发 Job 重新运行 |
 | 5. 知识沉淀 | `extract-knowledge` | 知识沉淀 |
 | 6. 标记 TodoWrite 完成 | `complete-todos` | 标记 TodoWrite 完成 |
+
+### 知识沉淀事件记录
+
+在步骤 5（知识沉淀）完成后，**必须**记录 `KNOWLEDGE_EXTRACTION` 或 `KNOWLEDGE_SKIPPED` 事件：
+
+#### 知识提取成功
+
+```bash
+# JSONL
+echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"I","type":"KNOWLEDGE_EXTRACTION","session_id":"'${session_id}'","phase":"phase_6","result":{"extracted":true,"pattern_name":"'${pattern_name}'","doc_path":"'${doc_path}'","tags":['${tags}'],"confidence":'${confidence}',"reusable":true}}' >> "${jsonl_file}"
+
+# 文本
+echo "[$(date +"%Y-%m-%d %H:%M:%S.000")] INFO | KNOWLEDGE    | extracted | pattern=${pattern_name} | confidence=${confidence}" >> "${log_file}"
+```
+
+#### 知识沉淀跳过
+
+```bash
+# JSONL
+echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"I","type":"KNOWLEDGE_SKIPPED","session_id":"'${session_id}'","phase":"phase_6","reason":"'${reason}'","details":"'${details}'"}' >> "${jsonl_file}"
+
+# 文本
+echo "[$(date +"%Y-%m-%d %H:%M:%S.000")] INFO | KNOWLEDGE    | skipped | reason=${reason}" >> "${log_file}"
+```
+
+#### 跳过原因枚举
+
+| reason | 说明 |
+|--------|------|
+| `low_confidence` | 置信度 < 80 |
+| `no_fix_made` | 没有实际修复 |
+| `one_time_issue` | 一次性问题（如 typo） |
+| `already_documented` | 已有文档覆盖 |
+| `not_reusable` | 修复方法不可复用 |

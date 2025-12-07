@@ -367,3 +367,12 @@ def generate_recommendation(classifications):
 | 3. 置信度评估 | `evaluate-confidence` | 置信度评估 |
 | 4. 修复可行性分析 | `analyze-fixability` | 修复可行性分析 |
 | 5. 生成建议 | `generate-recommendation` | 生成建议 |
+
+### 日志函数使用
+
+> 所有日志函数模板已定义在 `skills/workflow-logging/SKILL.md`，在每个步骤中使用：
+> - `log_step_start(phase, agent_name, step_id, step_name, step_index, total_steps)` - 步骤开始
+> - `log_analysis_result(phase, agent_name, analysis_type, result)` - 分析结果
+> - `log_step_end(phase, agent_name, step_id, status, result_summary)` - 步骤结束
+> - `log_warning(phase, code, message)` - 警告（如无法识别失败类型时）
+> - `log_data_collected(phase, agent_name, data_type, summary)` - 汇总数据

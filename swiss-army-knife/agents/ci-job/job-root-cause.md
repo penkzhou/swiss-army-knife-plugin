@@ -319,3 +319,14 @@ grep -r "{affected_file}" docs/bugfix/
 | 3. 匹配历史案例 | `match-history` | 匹配历史案例 |
 | 4. 生成修复建议 | `generate-suggestion` | 生成修复建议 |
 | 5. 置信度调整 | `adjust-confidence` | 置信度调整 |
+
+### 日志函数使用
+
+> 所有日志函数模板已定义在 `skills/workflow-logging/SKILL.md`，在每个步骤中使用：
+> - `log_step_start(phase, agent_name, step_id, step_name, step_index, total_steps)` - 步骤开始
+> - `log_data_collected(phase, agent_name, data_type, summary)` - 数据收集
+> - `log_analysis_result(phase, agent_name, analysis_type, result)` - 分析结果
+> - `log_step_end(phase, agent_name, step_id, status, result_summary)` - 步骤结束
+> - `log_warning(phase, code, message)` - 警告（如文件不可读、置信度过低）
+>
+> DEBUG 级别时额外记录：`log_tool_use(tool, target, status)`

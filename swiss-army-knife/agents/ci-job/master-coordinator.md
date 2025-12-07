@@ -126,6 +126,8 @@ def validate_phase(phase_arg):
 
 ### Phase 0: 初始化
 
+> **日志记录**：使用 `workflow-logging` skill 中的函数：`log_phase_start(0, "初始化")` → `log_agent_call(0, "ci-job-init-collector", "sonnet")` → `log_agent_result(0, ...)` → `log_phase_end(0, ...)`
+
 调用 **ci-job-init-collector** agent：
 
 ```
@@ -140,6 +142,9 @@ def validate_phase(phase_arg):
 
 ## Job URL
 {job_url}
+
+## 日志上下文
+{log_ctx}
 ```
 
 **验证输出**：
@@ -158,6 +163,8 @@ def validate_phase(phase_arg):
 
 ### Phase 1: 日志获取与解析
 
+> **日志记录**：使用 `workflow-logging` skill 中的函数：`log_phase_start(1, "日志获取与解析")` → `log_agent_call(1, "ci-job-log-fetcher", "sonnet")` → `log_agent_result(1, ...)` → `log_phase_end(1, ...)`
+
 调用 **ci-job-log-fetcher** agent：
 
 ```
@@ -174,6 +181,9 @@ def validate_phase(phase_arg):
 2. 识别失败的 step(s)
 3. 提取错误相关的日志片段
 4. 初步分类失败类型
+
+## 日志上下文
+{log_ctx}
 ```
 
 **验证输出**：
@@ -185,6 +195,8 @@ def validate_phase(phase_arg):
 **存储**：将输出存储为 `log_result`
 
 ### Phase 2: 失败分类
+
+> **日志记录**：使用 `workflow-logging` skill 中的函数：`log_phase_start(2, "失败分类")` → `log_agent_call(2, "ci-job-failure-classifier", "sonnet")` → `log_agent_result(2, ...)` → `log_phase_end(2, ...)`
 
 调用 **ci-job-failure-classifier** agent：
 
@@ -202,6 +214,9 @@ def validate_phase(phase_arg):
 
 ## 配置
 {init_ctx.config}
+
+## 日志上下文
+{log_ctx}
 ```
 
 **置信度上限处理**：
@@ -213,6 +228,8 @@ def validate_phase(phase_arg):
 **存储**：将输出存储为 `classification_result`
 
 ### Phase 3: 根因分析
+
+> **日志记录**：使用 `workflow-logging` skill 中的函数：`log_phase_start(3, "根因分析")` → `log_agent_call(3, "ci-job-root-cause", "opus")` → `log_agent_result(3, ...)` → `log_phase_end(3, ...)`
 
 调用 **ci-job-root-cause** agent：
 
@@ -230,11 +247,16 @@ def validate_phase(phase_arg):
 
 ## 配置
 {init_ctx.config}
+
+## 日志上下文
+{log_ctx}
 ```
 
 **存储**：将输出存储为 `root_cause_result`
 
 ### Phase 4: 修复执行
+
+> **日志记录**：使用 `workflow-logging` skill 中的函数：`log_phase_start(4, "修复执行")` → `log_agent_call(4, "ci-job-fix-coordinator", "opus")` → `log_agent_result(4, ...)` → `log_phase_end(4, ...)`
 
 **Dry Run 检查**：如果 `args.dry_run == true`
 - 展示分析结果和将要执行的操作
@@ -267,14 +289,18 @@ def validate_phase(phase_arg):
 3. 低置信度 (<60) 跳过
 4. lint_failure 走快速路径 (直接 lint --fix)
 5. 其他类型调用对应技术栈的 bugfix 工作流
+
+## 日志上下文
+{log_ctx}
 ```
 
-**置信度决策**：
-- 如果 `requires_user_decision == true`，使用 AskUserQuestion 处理
+**置信度决策**：如果 `requires_user_decision == true`，使用 AskUserQuestion 处理
 
 **存储**：将输出存储为 `fix_result`
 
 ### Phase 5: 验证与审查
+
+> **日志记录**：使用 `workflow-logging` skill 中的函数：`log_phase_start(5, "验证与审查")` → `log_agent_call(5, "review-coordinator", "opus")` → `log_agent_result(5, ...)` → `log_phase_end(5, ...)`
 
 **跳过条件**：如果 `fix_result.summary.fixed == 0`（没有代码变更）
 
@@ -319,11 +345,16 @@ def validate_phase(phase_arg):
   "workflow": "ci-job",
   "stack": "{classification_result.detected_stack}"
 }
+
+## logging
+{log_ctx}
 ```
 
 **存储**：将输出存储为 `review_result`
 
 ### Phase 6: 汇总与可选重试
+
+> **日志记录**：使用 `workflow-logging` skill 中的函数：`log_phase_start(6, "汇总与可选重试")` → `log_agent_call(6, "ci-job-summary-reporter", "sonnet")` → `log_agent_result(6, ...)` → `log_phase_end(6, ...)` → `log_session_end(...)`
 
 调用 **ci-job-summary-reporter** agent：
 
@@ -344,6 +375,9 @@ def validate_phase(phase_arg):
 
 ## 配置
 {init_ctx.config}
+
+## 日志上下文
+{log_ctx}
 ```
 
 **auto_commit 处理**：
@@ -559,107 +593,12 @@ todos = [
 
 ## 日志记录模式
 
-如果 `log_ctx.enabled == true`，在以下时机记录日志：
-
-### Phase 开始/结束
-
-```bash
-# Phase 开始
-echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"I","type":"PHASE_START","session_id":"'${session_id}'","phase":"phase_'${phase_num}'","phase_name":"'${phase_name}'"}' >> "${jsonl_file}"
-echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] INFO | PHASE_START  | Phase '${phase_num}': '${phase_name}'' >> "${log_file}"
-
-# Phase 结束
-echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"I","type":"PHASE_END","session_id":"'${session_id}'","phase":"phase_'${phase_num}'","status":"'${status}'","duration_ms":'${duration}'}' >> "${jsonl_file}"
-echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] INFO | PHASE_END    | Phase '${phase_num}' | '${status}' | '${duration}'ms' >> "${log_file}"
-```
-
-### Agent 调用/返回
-
-```bash
-# Agent 调用前
-echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"I","type":"AGENT_CALL","session_id":"'${session_id}'","phase":"phase_'${phase_num}'","agent":"'${agent_name}'","model":"'${model}'"}' >> "${jsonl_file}"
-echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] INFO | AGENT_CALL   | '${agent_name}' ('${model}')' >> "${log_file}"
-
-# Agent 返回后
-echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"I","type":"AGENT_RESULT","session_id":"'${session_id}'","phase":"phase_'${phase_num}'","agent":"'${agent_name}'","status":"'${status}'","duration_ms":'${duration}'}' >> "${jsonl_file}"
-echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] INFO | AGENT_RESULT | '${agent_name}' | '${status}' | '${duration}'ms' >> "${log_file}"
-```
-
-### 置信度决策
-
-```bash
-echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"X","type":"CONFIDENCE_DECISION","session_id":"'${session_id}'","phase":"phase_4","confidence_score":'${score}',"decision":"'${decision}'"}' >> "${jsonl_file}"
-echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] DECN | CONFIDENCE   | score='${score}' | decision='${decision}' | threshold=80' >> "${log_file}"
-```
-
-### blocks_auto_fix 决策
-
-```bash
-echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"X","type":"CONFIDENCE_DECISION","session_id":"'${session_id}'","phase":"phase_2","decision":"blocks_auto_fix","reason":"'${reason}'"}' >> "${jsonl_file}"
-echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] DECN | BLOCKS_FIX   | reason='${reason}' | confidence_cap=39' >> "${log_file}"
-```
-
-### 用户交互
-
-```bash
-# 提问
-echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"X","type":"USER_INTERACTION","session_id":"'${session_id}'","phase":"'${phase}'","interaction_type":"AskUserQuestion","question":"'${question}'"}' >> "${jsonl_file}"
-echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] DECN | USER_ASK     | "'${question}'"' >> "${log_file}"
-
-# 回答
-echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"X","type":"USER_INTERACTION","session_id":"'${session_id}'","phase":"'${phase}'","user_response":"'${response}'","wait_duration_ms":'${wait_ms}'}' >> "${jsonl_file}"
-echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] DECN | USER_ANSWER  | "'${response}'" | wait='${wait_ms}'ms' >> "${log_file}"
-```
-
-### 警告和错误
-
-```bash
-# 警告
-echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"W","type":"WARNING","session_id":"'${session_id}'","phase":"'${phase}'","code":"'${code}'","message":"'${message}'"}' >> "${jsonl_file}"
-echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] WARN | WARNING      | ['${code}'] '${message}'' >> "${log_file}"
-
-# 错误
-echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"E","type":"ERROR","session_id":"'${session_id}'","phase":"'${phase}'","code":"'${code}'","message":"'${message}'"}' >> "${jsonl_file}"
-echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] ERROR| ERROR        | ['${code}'] '${message}'' >> "${log_file}"
-```
-
-### SESSION_END
-
-在返回最终结果前写入：
-
-```bash
-echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"I","type":"SESSION_END","session_id":"'${session_id}'","status":"'${final_status}'","total_duration_ms":'${total_duration}',"phases_completed":['${phases_list}'],"summary":'${summary_json}'}' >> "${jsonl_file}"
-echo '['"$(date +"%Y-%m-%d %H:%M:%S.000")"'] INFO | SESSION_END  | '${final_status}' | '${total_duration}'ms | failures='${failures_count}' | fixed='${fixed_count}'' >> "${log_file}"
-```
-
-### DEBUG 级别：完整 Agent I/O
-
-如果 `log_ctx.level == "debug"`，在 Agent 调用前后额外记录完整输入输出：
-
-```bash
-# 输入（仅 DEBUG）
-echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"D","type":"AGENT_IO","session_id":"'${session_id}'","agent":"'${agent_name}'","direction":"input","content":'${input_json}'}' >> "${jsonl_file}"
-
-# 输出（仅 DEBUG）
-echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'","level":"D","type":"AGENT_IO","session_id":"'${session_id}'","agent":"'${agent_name}'","direction":"output","content":'${output_json}'}' >> "${jsonl_file}"
-```
-
-### 传递日志上下文给 review-coordinator
-
-调用 review-coordinator 时，传递日志上下文：
-
-```json
-{
-  "changed_files": [...],
-  "config": {...},
-  "context": {...},
-  "logging": {
-    "enabled": true,
-    "level": "info",
-    "session_id": "a1b2c3d4",
-    "log_files": {
-      "jsonl": ".claude/logs/swiss-army-knife/ci-job/xxx.jsonl",
-      "text": ".claude/logs/swiss-army-knife/ci-job/xxx.log"
-    }
-  }
-}
+> 所有日志函数模板已移至 `skills/workflow-logging/SKILL.md`，包括：
+> - `log_phase_start/end()` - Phase 生命周期
+> - `log_agent_call/result()` - Agent 调用追踪
+> - `log_confidence_decision(phase, score, decision, threshold)` - 置信度决策
+> - `log_user_ask/answer()` - 用户交互
+> - `log_warning/error()` - 警告和错误
+> - `log_session_end()` - 会话结束
+>
+> 调用 review-coordinator 时，通过 `logging` 字段传递 `log_ctx`。
